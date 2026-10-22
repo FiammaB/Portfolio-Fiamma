@@ -1,0 +1,150 @@
+---
+import Icon from './Icon.astro';
+import { whatsappUrl } from '@/lib/content';
+import { ui } from '@/lib/ui';
+import type { Lang, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+}
+
+const { lang, settings } = Astro.props;
+const t = ui(lang);
+const year = new Date().getFullYear();
+---
+
+<section id="contacto" class="contact">
+  <div class="arc" aria-hidden="true"></div>
+  <div class="inner" data-reveal>
+    <p class="label">{t.contact.kicker}</p>
+    <h2 class="title display">{t.contact.title} <span class="hl">{t.contact.highlight}</span></h2>
+    <p class="copy">{t.contact.copy}</p>
+    <a href={`mailto:${settings.email}`} class="btn btn-accent mail"><Icon name="mail" size={18} /> {settings.email}</a>
+    <div class="links">
+      <a class="chip" href={whatsappUrl(settings.whatsapp, settings.whatsappMessage)} target="_blank" rel="noopener">WhatsApp ↗</a>
+      <a class="chip" href={settings.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="chip" href={settings.github} target="_blank" rel="noopener">GitHub ↗</a>
+      <a class="chip soux" href={settings.souxion.url} target="_blank" rel="noopener">
+        <img src="/img/souxion-icono.webp" alt="" width="14" height="11" />SOUXION ↗
+      </a>
+    </div>
+  </div>
+  <footer class="footer wrap">
+    <span class="mono">© {year} {settings.name}</span>
+    <span class="mono credit">
+      {settings.role} · {t.contact.cofounder}
+      <a href={settings.souxion.url} target="_blank" rel="noopener">
+        <img src="/img/souxion-logo.webp" alt="SOUXION" width="101" height="13" />
+      </a>
+    </span>
+  </footer>
+</section>
+
+<style>
+  .contact {
+    position: relative;
+    margin-top: 160px;
+    padding: 160px var(--gutter) 0;
+    text-align: center;
+    overflow: hidden;
+  }
+  .arc {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 1400px;
+    height: 1400px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    border-top: 2px solid rgba(220, 210, 255, 0.7);
+    box-shadow:
+      0 -30px 120px rgba(124, 92, 255, 0.45),
+      inset 0 50px 140px rgba(124, 92, 255, 0.3);
+    pointer-events: none;
+  }
+  .inner {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .label {
+    margin-bottom: 22px;
+  }
+  .title {
+    font-size: clamp(30px, 8.4vw, 72px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+  }
+  .copy {
+    margin: 28px auto 0;
+    max-width: 560px;
+    color: #b9b1d6;
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  .mail {
+    margin-top: 40px;
+    padding: 18px 30px;
+    font-size: 16px;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .links .chip {
+    padding: 12px 18px;
+  }
+  .chip.soux {
+    border-color: rgba(254, 64, 4, 0.5);
+    color: #ffd9cc;
+  }
+  .chip.soux img {
+    width: 14px;
+    height: auto;
+  }
+  .footer {
+    position: relative;
+    margin-top: 160px;
+    padding: 28px 0 36px;
+    border-top: 1px solid rgba(196, 181, 255, 0.12);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--muted-2);
+  }
+  .credit {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .credit img {
+    height: 13px;
+    width: auto;
+  }
+  @media (max-width: 760px) {
+    .contact {
+      margin-top: 96px;
+      padding-top: 110px;
+    }
+    .copy {
+      font-size: 16px;
+    }
+    .mail {
+      font-size: 14px;
+      padding: 16px 22px;
+    }
+    .footer {
+      margin-top: 96px;
+    }
+  }
+</style>

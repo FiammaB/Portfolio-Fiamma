@@ -1,0 +1,63 @@
+---
+import { ui } from '@/lib/ui';
+import type { Lang, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+}
+
+const { lang, settings } = Astro.props;
+const t = ui(lang);
+---
+
+<section class="marquee" aria-label={t.marqueeLabel}>
+  <div class="track display">
+    {
+      [0, 1].map((copy) => (
+        <span class="run" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {settings.marquee.map((item, i) => (
+            <>
+              {i > 0 && <span class="sep mono">/</span>}
+              {item}
+            </>
+          ))}
+          <span class="sep mono end">{t.marqueeEnd}</span>
+        </span>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .marquee {
+    position: relative;
+    background: var(--accent);
+    overflow: hidden;
+    padding: 18px 0;
+  }
+  .track {
+    display: flex;
+    width: max-content;
+    animation: marquee 32s linear infinite;
+    font-size: 26px;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .run {
+    padding-right: 40px;
+  }
+  .sep {
+    font-size: 16px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin: 0 0.5em;
+    text-transform: none;
+  }
+  .end {
+    margin-left: 0.8em;
+  }
+</style>

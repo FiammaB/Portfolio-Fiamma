@@ -1,0 +1,221 @@
+---
+import { ui } from '@/lib/ui';
+import type { Lang, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+}
+
+const { lang, settings } = Astro.props;
+const t = ui(lang).stack;
+const pad = (n: number) => String(n).padStart(2, '0');
+// Como en la maqueta, arranca mostrando la segunda categoría (frameworks)
+const initial = Math.min(1, settings.stack.length - 1);
+---
+
+<section id="stack" class="section">
+  <div class="wrap">
+    <div class="head" data-reveal>
+      <p class="label">{t.kicker}</p>
+      <h2 class="h2 display">{t.title} <span class="hl">{t.highlight}</span></h2>
+      <p class="intro">{t.copy}</p>
+    </div>
+
+    <div class="board" data-tabs data-stack>
+      <div role="tablist" aria-label={t.catsLabel} aria-orientation="vertical" class="cats">
+        {
+          settings.stack.map((c, i) => (
+            <button
+              type="button"
+              role="tab"
+              class="cat"
+              id={`stack-tab-${i}`}
+              aria-controls={`stack-panel-${i}`}
+              aria-selected={i === initial ? 'true' : 'false'}
+              tabindex={i === initial ? 0 : -1}
+              data-count={pad(c.items.length)}
+              data-label={c.label.toLowerCase()}
+            >
+              <span class="mono code">{pad(i + 1)} / {c.label.toLowerCase().split(' ')[0]}</span>
+              <span class="cat-label">{c.label}</span>
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="ring" aria-hidden="true">
+        <div class="ring-spin"></div>
+        <div class="ring-core"></div>
+        <div class="ring-dash"></div>
+        <div class="ring-text">
+          <span class="display ring-count" data-ring-count>{pad(settings.stack[initial]?.items.length ?? 0)}</span>
+          <span class="mono ring-label" data-ring-label>{settings.stack[initial]?.label.toLowerCase()}</span>
+        </div>
+      </div>
+
+      <div class="items">
+        {
+          settings.stack.map((c, i) => (
+            <ul role="tabpanel" id={`stack-panel-${i}`} aria-labelledby={`stack-tab-${i}`} hidden={i !== initial} class="chips">
+              {c.items.map((item, n) => (
+                <li class="chip fade" style={`animation-delay:${n * 0.05}s`}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 56px;
+  }
+  .intro {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .board {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cats {
+    flex: 1 1 280px;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cat {
+    all: unset;
+    cursor: pointer;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 20px 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(196, 181, 255, 0.18);
+    background: rgba(255, 255, 255, 0.02);
+    color: #c9c1e6;
+    transition: all 0.3s ease;
+  }
+  .cat:hover {
+    border-color: var(--lilac);
+  }
+  .cat[aria-selected='true'] {
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 20px 50px rgba(124, 92, 255, 0.35);
+  }
+  .cat:focus-visible {
+    outline: 2px solid var(--lilac);
+    outline-offset: 2px;
+  }
+  .code {
+    display: block;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+  .cat-label {
+    display: block;
+    margin-top: 6px;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .ring {
+    flex: none;
+    position: relative;
+    width: 300px;
+    height: 300px;
+  }
+  .ring::after {
+    content: '';
+    position: absolute;
+    inset: -40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.25), transparent 65%);
+    z-index: -1;
+  }
+  .ring-spin {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0 20%, var(--accent) 45%, var(--lilac) 55%, transparent 80%);
+    animation: spin 6s linear infinite;
+    filter: blur(1px);
+  }
+  .ring-core {
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+  .ring-dash {
+    position: absolute;
+    inset: 40px;
+    border-radius: 50%;
+    border: 1px dashed rgba(196, 181, 255, 0.25);
+    animation: spin 30s linear infinite reverse;
+  }
+  .ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .ring-count {
+    font-size: 88px;
+    letter-spacing: -0.04em;
+  }
+  .ring-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .items {
+    flex: 1 1 320px;
+    max-width: 400px;
+  }
+  .chips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chips[hidden] {
+    display: none;
+  }
+  .chip {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+  @media (max-width: 760px) {
+    .ring {
+      width: 220px;
+      height: 220px;
+    }
+    .ring-count {
+      font-size: 64px;
+    }
+    .items {
+      flex-basis: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,179 @@
+---
+import { ui } from '@/lib/ui';
+import type { Lang, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+}
+
+const { lang, settings } = Astro.props;
+const t = ui(lang);
+const photo = settings.aboutPhoto;
+---
+
+<section id="sobre" class="section">
+  <div class="wrap about">
+    <div class="media" data-reveal>
+      <div class="photo">
+        <img src={photo.url} alt={photo.alt} width={photo.width} height={photo.height} loading="lazy" />
+        <span class="file mono">// sobre_mi.md</span>
+      </div>
+      <div class="bubbles">
+        {
+          settings.stats.map((s, i) => (
+            <div class:list={['bubble', s.tone]} style={`--i:${i}`}>
+              <span class="value">{s.value}</span>
+              <span class="mono">{s.label}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+    <div class="text" data-reveal>
+      <p class="label">{t.about.kicker}</p>
+      <h2 class="h2 display">{t.about.title} <span class="hl">{t.about.highlight}</span></h2>
+      <p class="lead">{settings.aboutLead}</p>
+      <p class="copy">{settings.aboutCopy}</p>
+      <ul class="traits">
+        {settings.traits.map((trait) => <li class="chip">{trait}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 56px;
+    align-items: center;
+  }
+  .media {
+    flex: 1 1 380px;
+    min-width: 0;
+    position: relative;
+  }
+  .photo {
+    position: relative;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(196, 181, 255, 0.18);
+    aspect-ratio: 4 / 5;
+  }
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(0.2) contrast(1.05);
+  }
+  .file {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(8, 6, 15, 0.7);
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    color: var(--text-soft);
+  }
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    animation: float calc(6s + var(--i) * 1s) ease-in-out calc(var(--i) * -2s) infinite;
+  }
+  .bubble .value {
+    font-size: 38px;
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .bubble .mono {
+    font-size: 10px;
+    margin-top: 6px;
+    max-width: 90px;
+    line-height: 1.3;
+  }
+  .bubble.accent {
+    right: -50px;
+    top: 40px;
+    width: 132px;
+    height: 132px;
+    background: var(--accent);
+    box-shadow: 0 20px 60px rgba(124, 92, 255, 0.5);
+  }
+  .bubble.outline {
+    right: -24px;
+    top: 200px;
+    width: 116px;
+    height: 116px;
+    border: 1px solid rgba(243, 240, 255, 0.5);
+    background: rgba(8, 6, 15, 0.55);
+    backdrop-filter: blur(10px);
+  }
+  .bubble.orange {
+    right: -60px;
+    top: 340px;
+    width: 124px;
+    height: 124px;
+    background: var(--peach);
+    color: #1a0e08;
+  }
+  .text {
+    flex: 1.3 1 480px;
+    min-width: 0;
+  }
+  .h2 {
+    margin-bottom: 32px;
+  }
+  .lead {
+    font-size: 21px;
+    line-height: 1.55;
+    color: var(--text-soft);
+    font-weight: 300;
+  }
+  .copy {
+    margin-top: 22px;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .traits {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  @media (max-width: 760px) {
+    .about {
+      gap: 40px;
+    }
+    .bubbles {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .bubble {
+      position: static;
+      width: auto !important;
+      height: auto !important;
+      flex: 1;
+      aspect-ratio: 1;
+      animation: none;
+    }
+    .bubble .value {
+      font-size: 28px;
+    }
+    .lead {
+      font-size: 18px;
+    }
+  }
+</style>

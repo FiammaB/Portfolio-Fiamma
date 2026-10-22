@@ -1,0 +1,357 @@
+---
+import Icon from './Icon.astro';
+import { whatsappUrl } from '@/lib/content';
+import { ui } from '@/lib/ui';
+import type { Lang, Service, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+  services: Service[];
+}
+
+const { lang, settings, services } = Astro.props;
+const t = ui(lang).services;
+const body = `${t.bodyPre} ${t.bodyEmpty}`;
+const mailto = `mailto:${settings.email}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(body)}`;
+---
+
+<section
+  id="servicios"
+  class="services"
+  data-services
+  data-email={settings.email}
+  data-whatsapp={settings.whatsapp.replace(/\D/g, '')}
+  data-subject={t.subject}
+  data-body-pre={t.bodyPre}
+  data-body-empty={t.bodyEmpty}
+  data-add={t.add}
+  data-added={t.added}
+>
+  <div class="wrap">
+    <div class="head" data-reveal>
+      <div>
+        <p class="label kicker">{t.kicker}</p>
+        <h2 class="title display">{t.title}</h2>
+      </div>
+      <p class="intro">{t.copy}</p>
+    </div>
+
+    <div class="layout">
+      <ul class="list">
+        {
+          services.map((s) => (
+            <li class="item" data-reveal>
+              <div class="svc">
+                <h3 class="svc-title display">{s.title}</h3>
+                <p class="svc-desc">{s.description}</p>
+              </div>
+              <button type="button" class="add" aria-pressed="false" data-service={s.title} aria-label={s.title}>
+                <span class="mono">{t.add}</span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+
+      <aside class="ticket" aria-label={t.ticketLabel}>
+        <div class="person">
+          <img src="/img/fiamma-avatar.webp" alt="" width="52" height="52" loading="lazy" />
+          <div>
+            <p class="person-name">{settings.name}</p>
+            <p class="mono available">{t.available}</p>
+          </div>
+        </div>
+        <p class="mono ticket-label">{t.ticketLabel}</p>
+        <div class="selected" aria-live="polite">
+          <p class="empty" data-empty>{t.empty}</p>
+          <ul class="picked" data-picked></ul>
+        </div>
+        <div class="perforation" aria-hidden="true"><span></span><span></span></div>
+        <a href={mailto} class="cta cta-mail" data-mail>{t.email} <Icon name="arrow-up-right" size={14} /></a>
+        <a href={whatsappUrl(settings.whatsapp, body)} target="_blank" rel="noopener" class="cta cta-wa" data-wa>{t.whatsapp}</a>
+        <a href={settings.souxion.url} target="_blank" rel="noopener" class="cta cta-soux">
+          <img src="/img/souxion-icono.webp" alt="" width="16" height="13" />{t.souxion} ↗
+        </a>
+        <p class="mono email">{settings.email}</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script>
+  import '@/scripts/services';
+</script>
+
+<style>
+  .services {
+    position: relative;
+    margin-top: 140px;
+    padding: 120px var(--gutter);
+    background: linear-gradient(180deg, var(--bg) 0%, #1a0f45 55%, #3a1f9e 100%);
+    /* clip (no hidden) para no romper el position: sticky del ticket */
+    overflow-x: clip;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+  .kicker {
+    color: var(--lilac);
+  }
+  .title {
+    font-size: clamp(24px, 7vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+    max-width: 12ch;
+  }
+  .intro {
+    max-width: 380px;
+    color: #c9c1e6;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    align-items: flex-start;
+  }
+  .list {
+    flex: 2 1 560px;
+    min-width: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .item {
+    border-top: 1px solid rgba(243, 240, 255, 0.2);
+    padding: 26px 0;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .svc {
+    flex: 1 1 auto;
+    min-width: 0;
+    transition: padding 0.3s ease;
+  }
+  .item:hover .svc {
+    padding-left: 14px;
+  }
+  .svc-title {
+    /* "Corporativos" es la palabra más larga: este tope evita que choque con el botón */
+    font-size: clamp(26px, 3.9vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+    color: rgba(243, 240, 255, 0.55);
+    transition: color 0.3s ease;
+  }
+  .item.is-on .svc-title {
+    color: #fff;
+  }
+  .svc-desc {
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #c9c1e6;
+    max-width: 520px;
+  }
+  .add {
+    all: unset;
+    cursor: pointer;
+    flex: none;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    text-align: center;
+    transition:
+      background 0.3s ease,
+      transform 0.2s ease;
+  }
+  .add:hover {
+    transform: scale(1.05);
+  }
+  .add:active {
+    transform: scale(0.95);
+  }
+  .add[aria-pressed='true'] {
+    background: var(--green);
+  }
+  .add:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .ticket {
+    flex: 1 1 340px;
+    min-width: 0;
+    position: sticky;
+    top: 24px;
+    border-radius: 26px;
+    background: rgba(8, 6, 15, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--line-strong);
+    padding: 28px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45);
+  }
+  .person {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .person img {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+  }
+  .person-name {
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .available {
+    font-size: 12px;
+    color: var(--green);
+  }
+  .ticket-label {
+    margin: 24px 0 10px;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .selected {
+    min-height: 86px;
+  }
+  .empty {
+    font-size: 14px;
+    color: var(--muted-2);
+    line-height: 1.5;
+  }
+  .picked {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .picked :global(li) {
+    display: inline-flex;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: rgba(124, 92, 255, 0.2);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #fff;
+    animation: fade-up 0.4s ease both;
+  }
+  .perforation {
+    margin: 22px -28px;
+    border-top: 1px dashed rgba(196, 181, 255, 0.3);
+    position: relative;
+  }
+  .perforation span {
+    position: absolute;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1e1250;
+  }
+  .perforation span:first-child {
+    left: -10px;
+  }
+  .perforation span:last-child {
+    right: -10px;
+  }
+  .cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    border-radius: 14px;
+    font-size: 15px;
+    text-align: center;
+  }
+  .cta + .cta {
+    margin-top: 10px;
+  }
+  .cta-mail {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 500;
+  }
+  .cta-mail:hover {
+    background: #8d71ff;
+    color: #fff;
+  }
+  .cta-wa {
+    border: 1px solid rgba(196, 181, 255, 0.3);
+    color: var(--text);
+  }
+  .cta-wa:hover {
+    border-color: var(--lilac);
+  }
+  .cta-soux {
+    background: rgba(255, 80, 0, 0.12);
+    border: 1px solid rgba(255, 80, 0, 0.4);
+    color: #ffd9cc;
+    font-size: 14px;
+  }
+  .cta-soux:hover {
+    color: #fff;
+    border-color: var(--orange);
+  }
+  .cta-soux img {
+    width: 16px;
+    height: auto;
+  }
+  .email {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--muted-2);
+    text-align: center;
+  }
+  @media (max-width: 760px) {
+    .services {
+      margin-top: 96px;
+      padding: 88px var(--gutter);
+    }
+    .item {
+      gap: 14px;
+    }
+    .svc-title {
+      font-size: clamp(18px, 5.2vw, 32px);
+    }
+    .add {
+      width: 64px;
+      height: 64px;
+      font-size: 9px;
+    }
+    .ticket {
+      position: static;
+      padding: 22px;
+    }
+    .perforation {
+      margin: 22px -22px;
+    }
+  }
+</style>

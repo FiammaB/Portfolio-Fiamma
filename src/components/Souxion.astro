@@ -1,0 +1,436 @@
+---
+import Icon from './Icon.astro';
+import { whatsappUrl } from '@/lib/content';
+import { ui } from '@/lib/ui';
+import type { Lang, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+}
+
+const { lang, settings } = Astro.props;
+const t = ui(lang).souxion;
+const s = settings.souxion;
+const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+---
+
+<section id="souxion" class="souxion">
+  <div class="fire" aria-hidden="true"></div>
+  <div class="topline" aria-hidden="true"></div>
+  <img class="watermark" aria-hidden="true" alt="" src="/img/souxion-logo.webp" width="1002" height="129" loading="lazy" />
+  <img class="corner hide-sm" aria-hidden="true" alt="" src="/img/souxion-icono.webp" width="200" height="164" loading="lazy" />
+
+  <div class="wrap inner">
+    <div class="text" data-reveal>
+      <p class="label kicker">{t.kicker}</p>
+      <h2 class="title display">
+        {t.title}
+        <img src="/img/souxion-logo.webp" alt="SOUXION" width="1002" height="129" loading="lazy" />
+      </h2>
+      <p class="lead">{s.description}</p>
+
+      <div class="tabs" data-tabs>
+        <div role="tablist" aria-label={t.tabsLabel} class="tablist">
+          {
+            t.tabs.map((label, i) => (
+              <button
+                type="button"
+                role="tab"
+                class="tab mono"
+                id={`soux-tab-${i}`}
+                aria-controls={`soux-panel-${i}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                tabindex={i === 0 ? 0 : -1}
+              >
+                {label}
+              </button>
+            ))
+          }
+        </div>
+        <div class="panels">
+          <div role="tabpanel" id="soux-panel-0" aria-labelledby="soux-tab-0" class="panel fade">
+            <p class="panel-copy">{t.studioPre} <span class="orange">{t.studioHighlight}</span> {t.studioPost}</p>
+            <ul class="checks mono">
+              {t.checks.map((c) => <li><span class="orange">✓</span> {c}</li>)}
+            </ul>
+          </div>
+          <div role="tabpanel" id="soux-panel-1" aria-labelledby="soux-tab-1" class="panel fade" hidden>
+            <p class="mini mono">{t.typesTitle}</p>
+            <ul class="chips">{t.types.map((c) => <li class="chip line">{c}</li>)}</ul>
+            <p class="mini mono second">{t.brandTitle}</p>
+            <ul class="chips">{t.brand.map((c) => <li class="chip fill">{c}</li>)}</ul>
+          </div>
+          <div role="tabpanel" id="soux-panel-2" aria-labelledby="soux-tab-2" class="panel fade" hidden>
+            <ol class="steps">
+              {
+                t.steps.map((step, i) => (
+                  <li style={`--i:${i}`}>
+                    <span class="mono">{String(i + 1).padStart(2, '0')}</span>
+                    <span class="step-name">{step}</span>
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+          <div role="tabpanel" id="soux-panel-3" aria-labelledby="soux-tab-3" class="panel fade" hidden>
+            <p class="duo display">{t.duoTitle}<br /><span class="orange">{t.duoHighlight}</span></p>
+            <p class="panel-copy duo-copy">{t.duoCopy}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href={s.url} target="_blank" rel="noopener" class="btn btn-orange">{t.visit} <Icon name="arrow-up-right" size={14} /></a>
+        <a href={s.instagramUrl} target="_blank" rel="noopener" class="btn btn-orange-ghost"><Icon name="instagram" /> {s.instagram}</a>
+        <a href={whatsappUrl(s.whatsapp)} target="_blank" rel="noopener" class="btn btn-orange-ghost">{t.whatsapp} ↗</a>
+      </div>
+    </div>
+
+    <div class="collage hide-sm" data-reveal>
+      <div class="collage-photo">
+        <img src={s.photo.url} alt={s.photo.alt} width={s.photo.width} height={s.photo.height} loading="lazy" />
+      </div>
+      <div class="iso float">
+        <img src="/img/souxion-isotipo.webp" alt={t.isotipo} width="400" height="327" loading="lazy" />
+      </div>
+      <a href={s.url} target="_blank" rel="noopener" class="site-card float">
+        <span class="www mono">www</span>
+        <span><span class="site-name">{domain}</span><span class="mono site-label">{t.siteLabel} ↗</span></span>
+      </a>
+      <a href={s.instagramUrl} target="_blank" rel="noopener" class="ig float"><Icon name="instagram" /> {s.instagram}</a>
+      <span class="remote mono">{t.remote}</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .souxion {
+    position: relative;
+    margin-top: 140px;
+    padding: 120px var(--gutter);
+    background: var(--bg-deep);
+    overflow: hidden;
+    scroll-margin-top: 0;
+  }
+  .fire {
+    position: absolute;
+    right: -220px;
+    bottom: -260px;
+    width: 1000px;
+    height: 800px;
+    background: radial-gradient(ellipse at center, rgba(254, 64, 4, 0.45), rgba(254, 64, 4, 0.08) 45%, transparent 70%);
+  }
+  .topline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--orange-2), transparent);
+  }
+  .watermark {
+    position: absolute;
+    left: -40px;
+    bottom: 30px;
+    width: 1500px;
+    max-width: none;
+    height: auto;
+    opacity: 0.06;
+  }
+  .corner {
+    position: absolute;
+    right: 40px;
+    top: 60px;
+    width: 64px;
+    height: auto;
+    opacity: 0.9;
+  }
+  .inner {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 56px;
+    align-items: center;
+  }
+  .text {
+    flex: 1.1 1 520px;
+    min-width: 0;
+  }
+  .kicker {
+    color: var(--peach);
+  }
+  .title {
+    font-size: clamp(44px, 6vw, 76px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--orange);
+  }
+  .title img {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    margin-top: 22px;
+  }
+  .lead {
+    margin-top: 28px;
+    font-size: 19px;
+    line-height: 1.6;
+    color: #d9d2cc;
+    max-width: 580px;
+    font-weight: 300;
+  }
+  .orange {
+    color: var(--orange);
+  }
+
+  .tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 36px;
+  }
+  .tab {
+    all: unset;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(254, 64, 4, 0.35);
+    color: #e8dcd5;
+    transition: background 0.25s ease;
+  }
+  .tab:hover {
+    border-color: var(--orange);
+  }
+  .tab[aria-selected='true'] {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #fff;
+  }
+  .tab:focus-visible {
+    outline: 2px solid #ffd9cc;
+    outline-offset: 2px;
+  }
+  .panels {
+    margin-top: 24px;
+    min-height: 210px;
+    padding: 26px;
+    border-radius: 20px;
+    border: 1px solid rgba(254, 64, 4, 0.25);
+    background: linear-gradient(160deg, rgba(254, 64, 4, 0.08), rgba(255, 255, 255, 0.02));
+  }
+  .panel-copy {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #ede7e2;
+  }
+  .checks {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px 18px;
+    font-size: 13px;
+    color: #d9d2cc;
+  }
+  .mini {
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #a89f98;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .mini.second {
+    margin-top: 22px;
+  }
+  .chips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chip.line {
+    border-color: rgba(254, 64, 4, 0.45);
+    color: #ffd9cc;
+  }
+  .chip.fill {
+    background: rgba(254, 64, 4, 0.15);
+    border-color: transparent;
+    color: #ffd9cc;
+  }
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .steps li {
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(254, 64, 4, calc(0.12 + var(--i) * 0.07));
+  }
+  .steps li:last-child {
+    background: var(--orange);
+  }
+  .steps .mono {
+    font-size: 12px;
+    color: var(--orange);
+  }
+  .steps li:nth-child(n + 3) .mono {
+    color: #ffd9cc;
+  }
+  .steps li:last-child .mono {
+    color: #fff;
+  }
+  .step-name {
+    display: block;
+    margin-top: 26px;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .duo {
+    font-size: 28px;
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+  .duo-copy {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+
+  .collage {
+    flex: 1 1 440px;
+    min-width: 0;
+    position: relative;
+    height: 600px;
+  }
+  .collage-photo {
+    position: absolute;
+    left: 70px;
+    top: 20px;
+    width: 340px;
+    height: 440px;
+    border-radius: 30px;
+    overflow: hidden;
+    border: 1px solid rgba(254, 64, 4, 0.35);
+    box-shadow: 0 40px 120px rgba(254, 64, 4, 0.25);
+    rotate: -3deg;
+  }
+  .collage-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .iso {
+    position: absolute;
+    right: 0;
+    top: 60px;
+    width: 150px;
+    height: 150px;
+    border-radius: 28px;
+    background: linear-gradient(145deg, var(--orange), #1a0500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 30px 80px rgba(254, 64, 4, 0.35);
+  }
+  .iso img {
+    width: 92px;
+    height: auto;
+  }
+  .site-card {
+    position: absolute;
+    left: 0;
+    bottom: 70px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: rgba(20, 12, 10, 0.85);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(254, 64, 4, 0.3);
+    color: var(--text);
+    animation-duration: 7s;
+    animation-delay: -3s;
+  }
+  .www {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--orange-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .site-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .site-label {
+    font-size: 11px;
+    color: #a89f98;
+  }
+  .ig {
+    position: absolute;
+    right: 10px;
+    bottom: 150px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    animation-duration: 8s;
+    animation-delay: -1s;
+  }
+  .ig:hover {
+    color: var(--bg);
+    background: #fff;
+  }
+  .remote {
+    position: absolute;
+    left: 150px;
+    bottom: 10px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 12px;
+    rotate: -4deg;
+  }
+  @media (max-width: 760px) {
+    .souxion {
+      margin-top: 96px;
+      padding: 88px var(--gutter);
+    }
+    .lead {
+      font-size: 17px;
+    }
+    .panels {
+      padding: 20px;
+    }
+  }
+</style>

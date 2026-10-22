@@ -1,0 +1,181 @@
+---
+import { ui } from '@/lib/ui';
+import type { Lang, Settings } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  settings: Settings;
+}
+
+const { lang, settings } = Astro.props;
+const t = ui(lang).education;
+---
+
+<section id="formacion" class="section">
+  <div class="wrap layout">
+    <div class="side" data-reveal>
+      <p class="label">{t.kicker}</p>
+      <h2 class="h2 display">{t.title}<br /><span class="hl">{t.highlight}</span></h2>
+      <p class="intro">{t.copy}</p>
+    </div>
+    <div class="main" data-reveal>
+      <ul class="rows">
+        {
+          settings.education.map((e) => (
+            <li class="row">
+              <span class="mono year">{e.year}</span>
+              <span class="title">{e.title}</span>
+              <span class="inst">{e.institution}</span>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        settings.certificates.length > 0 && (
+          <details class="certs">
+            <summary class="mono" data-show={t.show} data-hide={t.hide}>
+              <span class="when-closed">{t.show} →</span>
+              <span class="when-open">{t.hide} ↑</span>
+            </summary>
+            <ul class="grid">
+              {settings.certificates.map((c) => (
+                <li>
+                  <a href={c.image.url} target="_blank" rel="noopener" class="cert">
+                    <img src={c.image.url} alt={c.image.alt} width={c.image.width} height={c.image.height} loading="lazy" />
+                    <span class="cert-title">{c.title}</span>
+                    <span class="mono cert-issuer">{c.issuer}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+  }
+  .side {
+    flex: 1 1 320px;
+  }
+  .h2 {
+    margin-bottom: 18px;
+  }
+  .intro {
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 360px;
+  }
+  .main {
+    flex: 2 1 560px;
+    min-width: 0;
+  }
+  .rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    align-items: baseline;
+    padding: 26px 8px;
+    border-top: 1px solid var(--line);
+    transition: background 0.3s ease;
+  }
+  .row:hover {
+    background: rgba(124, 92, 255, 0.07);
+  }
+  .year {
+    width: 90px;
+    color: var(--accent);
+    font-size: 14px;
+  }
+  .title {
+    flex: 1 1 280px;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .inst {
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .certs {
+    border-top: 1px solid var(--line);
+    padding: 22px 8px 0;
+  }
+  summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    color: var(--lilac);
+    width: fit-content;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:hover {
+    color: #fff;
+  }
+  .when-open,
+  .certs[open] .when-closed {
+    display: none;
+  }
+  .certs[open] .when-open {
+    display: inline;
+  }
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    animation: fade-up 0.5s ease both;
+  }
+  .cert {
+    display: block;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.3s ease;
+  }
+  .cert:hover {
+    border-color: var(--lilac);
+    color: var(--text);
+  }
+  .cert img {
+    width: 100%;
+    aspect-ratio: 1400 / 990;
+    object-fit: cover;
+  }
+  .cert-title {
+    display: block;
+    padding: 14px 16px 0;
+    font-weight: 500;
+  }
+  .cert-issuer {
+    display: block;
+    padding: 2px 16px 14px;
+    font-size: 12px;
+    color: var(--muted-2);
+  }
+  @media (max-width: 760px) {
+    .year {
+      width: auto;
+    }
+    .title {
+      flex-basis: 100%;
+      font-size: 18px;
+    }
+  }
+</style>

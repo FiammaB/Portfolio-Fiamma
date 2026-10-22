@@ -1,0 +1,50 @@
+---
+import { ui } from '@/lib/ui';
+import type { Lang } from '@/lib/types';
+import '@/styles/global.css';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui(lang);
+const canonical = new URL(t.path, Astro.site);
+const alternate = (l: Lang) => new URL(ui(l).path, Astro.site);
+const ogImage = new URL('/img/fiamma-rojo.webp', Astro.site);
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.title}</title>
+    <meta name="description" content={t.description} />
+    <meta name="theme-color" content="#08060F" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="es" href={alternate('es')} />
+    <link rel="alternate" hreflang="en" href={alternate('en')} />
+    <link rel="alternate" hreflang="x-default" href={alternate('es')} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/syne-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.title} />
+    <meta property="og:description" content={t.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={lang === 'es' ? 'es_AR' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+  </head>
+  <body>
+    <a class="visually-hidden skip-link" href="#contenido">{t.skip}</a>
+    <slot />
+    <script>
+      import '@/scripts/reveal';
+    </script>
+  </body>
+</html>

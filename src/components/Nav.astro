@@ -1,0 +1,156 @@
+---
+import Icon from './Icon.astro';
+import { ui } from '@/lib/ui';
+import type { Lang } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui(lang);
+const links = [
+  ['#inicio', t.nav.home],
+  ['#sobre', t.nav.about],
+  ['#souxion', t.nav.souxion],
+  ['#proyectos', t.nav.projects],
+  ['#stack', t.nav.stack],
+  ['#servicios', t.nav.services],
+];
+---
+
+<nav class="nav wrap" aria-label={t.navLabel}>
+  <a href="#inicio" class="brand">
+    <span class="logo mono" aria-hidden="true">&lt;FB/&gt;</span>
+    <span class="mono">fiamma<span class="muted">.brizuela</span></span>
+  </a>
+  <div class="links hide-sm">
+    {
+      links.map(([href, label], i) => (
+        <a class:list={['navlink', { 'is-current': i === 0 }]} href={href} data-navlink>
+          {label}
+        </a>
+      ))
+    }
+  </div>
+  <div class="tools">
+    <span class="clock mono hide-sm" data-clock>ARG</span>
+    <div class="lang mono" role="group" aria-label={t.langLabel}>
+      <a href="/" hreflang="es" lang="es" aria-current={lang === 'es' ? 'true' : undefined}>ES</a>
+      <a href="/en/" hreflang="en" lang="en" aria-current={lang === 'en' ? 'true' : undefined}>EN</a>
+    </div>
+    <a href="#servicios" class="hire">{t.hire} <Icon name="arrow-up-right" size={14} /></a>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    position: relative;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .links {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(196, 181, 255, 0.16);
+    background: rgba(18, 13, 32, 0.7);
+    backdrop-filter: blur(12px);
+  }
+  .navlink {
+    font-size: 14px;
+    color: #c9c1e6;
+    padding: 8px 14px;
+    border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+  .navlink:hover,
+  .navlink.is-current {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .clock {
+    font-size: 12px;
+    color: var(--muted);
+    padding-right: 6px;
+    white-space: nowrap;
+  }
+  .lang {
+    display: flex;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(196, 181, 255, 0.16);
+    font-size: 12px;
+  }
+  .lang a {
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: var(--muted);
+  }
+  .lang a[aria-current] {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .hire {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .hire:hover {
+    background: #8d71ff;
+    color: #fff;
+  }
+  @media (max-width: 1180px) {
+    .clock {
+      display: none;
+    }
+  }
+  @media (max-width: 1000px) {
+    .links {
+      display: none;
+    }
+  }
+  @media (max-width: 420px) {
+    .brand .mono:last-child {
+      display: none;
+    }
+  }
+</style>

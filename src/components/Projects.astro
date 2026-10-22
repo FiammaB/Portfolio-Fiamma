@@ -1,0 +1,327 @@
+---
+import { ui } from '@/lib/ui';
+import type { Lang, Project, ProjectCategory } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+  projects: Project[];
+}
+
+const { lang, projects } = Astro.props;
+const t = ui(lang).projects;
+const filters = Object.entries(t.filters) as [ProjectCategory | 'todos', string][];
+const count = (id: string) => (id === 'todos' ? projects.length : projects.filter((p) => p.categories.includes(id as ProjectCategory)).length);
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section id="proyectos" class="section">
+  <div class="wrap">
+    <div class="head" data-reveal>
+      <div>
+        <p class="label">{t.kicker}</p>
+        <h2 class="h2 display">{t.title}<br /><span class="hl">{t.highlight}</span></h2>
+      </div>
+      <p class="intro">{t.copy}</p>
+    </div>
+
+    <div class="filters" role="group" aria-label={t.filtersLabel} data-filters>
+      {
+        filters
+          .filter(([id]) => count(id) > 0)
+          .map(([id, label], i) => (
+            <button type="button" class="pill" data-filter={id} aria-pressed={i === 0 ? 'true' : 'false'}>
+              {label}<span class="count">{count(id)}</span>
+            </button>
+          ))
+      }
+    </div>
+
+    <ul class="list" data-projects>
+      {
+        projects.map((p, i) => (
+          <li class="row" data-cats={p.categories.join(' ')}>
+            <h3>
+              <button
+                type="button"
+                class="toggle"
+                aria-expanded={i === 0 ? 'true' : 'false'}
+                aria-controls={`proyecto-${i}`}
+                id={`proyecto-btn-${i}`}
+              >
+                <span class="num mono" data-num>[{pad(i + 1)}]</span>
+                <span class="name">{p.title}</span>
+                <span class:list={['tag mono', p.tone]}>{p.kind}</span>
+                <span class="stack mono hide-sm">{p.stack}</span>
+                <span class="arrow" aria-hidden="true">↗</span>
+              </button>
+            </h3>
+            <div class="detail" id={`proyecto-${i}`} role="region" aria-labelledby={`proyecto-btn-${i}`} hidden={i !== 0}>
+              <div class="window">
+                <div class="window-bar">
+                  <span></span><span></span><span></span>
+                  <span class="window-title mono">{p.title}</span>
+                </div>
+                {
+                  p.image ? (
+                    <img src={p.image.url} alt={p.image.alt} width={p.image.width} height={p.image.height} loading="lazy" />
+                  ) : (
+                    <div class:list={['placeholder', p.placeholder]}>
+                      {p.placeholder === 'souxion' && (
+                        <>
+                          <img class="ph-icon" src="/img/souxion-isotipo.webp" alt="" width="400" height="327" loading="lazy" />
+                          <img class="ph-logo" src="/img/souxion-logo.webp" alt="SOUXION" width="1002" height="129" loading="lazy" />
+                        </>
+                      )}
+                      {p.placeholder === 'web' && <span class="mono">{p.domain ?? p.url?.replace(/^https?:\/\//, '')} ↗</span>}
+                      {p.placeholder === 'code' && <span class="mono">{t.repo}</span>}
+                      {p.placeholder === 'soon' && <span class="mono">{t.soon}</span>}
+                    </div>
+                  )
+                }
+              </div>
+              <div class="info">
+                <p class="desc">{p.description}</p>
+                <p class="mono info-stack">{p.stack}</p>
+                {
+                  p.url ? (
+                    <a href={p.url} target="_blank" rel="noopener" class="btn btn-light">{p.cta} ↗</a>
+                  ) : (
+                    <span class="btn btn-light" aria-disabled="true">{p.cta}</span>
+                  )
+                }
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+  .intro {
+    max-width: 400px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .row {
+    border-bottom: 1px solid var(--line);
+    transition: background 0.3s ease;
+  }
+  .row:hover {
+    background: rgba(124, 92, 255, 0.07);
+  }
+  .row[hidden] {
+    display: none;
+  }
+  h3 {
+    font: inherit;
+  }
+  .toggle {
+    all: unset;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 26px 8px;
+    flex-wrap: wrap;
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--lilac);
+    outline-offset: -2px;
+  }
+  .num {
+    width: 44px;
+    font-size: 13px;
+    color: var(--faint);
+  }
+  .name {
+    flex: 1 1 280px;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .tag {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .tag.souxion {
+    background: var(--orange);
+    color: #fff;
+  }
+  .tag.accent {
+    background: var(--accent);
+    color: #fff;
+  }
+  .tag.dev {
+    background: var(--yellow);
+    color: #1a1205;
+  }
+  .tag.muted {
+    border: 1px solid var(--line-strong);
+    color: #c9c1e6;
+  }
+  .stack {
+    width: 230px;
+    font-size: 13px;
+    color: var(--muted-2);
+  }
+  .arrow {
+    font-size: 22px;
+    color: var(--muted-2);
+    transition: transform 0.3s ease;
+  }
+  [aria-expanded='true'] .num,
+  [aria-expanded='true'] .arrow {
+    color: var(--accent);
+  }
+  [aria-expanded='true'] .arrow {
+    transform: rotate(90deg);
+  }
+  .detail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 0 8px 32px 76px;
+    animation: fade-up 0.5s ease both;
+  }
+  .detail[hidden] {
+    display: none;
+  }
+  .window {
+    flex: 1 1 420px;
+    min-width: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(196, 181, 255, 0.16);
+    background: var(--bg);
+  }
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(196, 181, 255, 0.12);
+  }
+  .window-bar > span:not(.window-title) {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #3a3157;
+  }
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted-2);
+  }
+  .window > img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: top;
+  }
+  .placeholder {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--muted-2);
+  }
+  .placeholder.web {
+    background: radial-gradient(circle at 75% 110%, rgba(255, 80, 0, 0.75), #1a0500 55%, var(--bg-deep));
+    color: #fff;
+  }
+  .placeholder.web .mono {
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    padding: 0 16px;
+    text-align: center;
+  }
+  .placeholder.code {
+    background:
+      repeating-linear-gradient(0deg, rgba(196, 181, 255, 0.04) 0 1px, transparent 1px 28px),
+      #0e0a1a;
+  }
+  .placeholder.soon {
+    background: repeating-linear-gradient(135deg, rgba(245, 199, 107, 0.06) 0 12px, transparent 12px 24px), #0e0a1a;
+    color: var(--yellow);
+  }
+  .placeholder.souxion {
+    background: radial-gradient(ellipse 70% 60% at 60% 120%, rgba(255, 80, 0, 0.85), #1a0500 55%, #000);
+  }
+  .ph-icon {
+    position: absolute;
+    left: 6%;
+    top: 8%;
+    width: 7%;
+    height: auto;
+  }
+  .ph-logo {
+    width: 56%;
+    height: auto;
+    filter: brightness(0) invert(1);
+  }
+  .info {
+    flex: 1 1 320px;
+    min-width: 0;
+  }
+  .desc {
+    color: #b9b1d6;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  .info-stack {
+    margin: 22px 0;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  @media (max-width: 760px) {
+    .toggle {
+      gap: 10px 16px;
+      padding: 20px 4px;
+    }
+    .num {
+      width: auto;
+    }
+    .name {
+      flex-basis: calc(100% - 80px);
+      font-size: 20px;
+    }
+    .arrow {
+      margin-left: auto;
+    }
+    .detail {
+      padding: 0 4px 28px;
+      gap: 20px;
+    }
+  }
+</style>

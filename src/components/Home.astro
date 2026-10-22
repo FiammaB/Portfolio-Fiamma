@@ -1,0 +1,40 @@
+---
+// La página completa. index.astro (español) y en/index.astro (inglés) la usan con su idioma.
+import Base from '@/layouts/Base.astro';
+import Hero from './Hero.astro';
+import Marquee from './Marquee.astro';
+import About from './About.astro';
+import Souxion from './Souxion.astro';
+import Projects from './Projects.astro';
+import Stack from './Stack.astro';
+import Services from './Services.astro';
+import Education from './Education.astro';
+import Contact from './Contact.astro';
+import { getProjects, getServices, getSettings } from '@/lib/content';
+import type { Lang } from '@/lib/types';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const [settings, projects, services] = await Promise.all([getSettings(lang), getProjects(lang), getServices(lang)]);
+---
+
+<Base lang={lang}>
+  <Hero lang={lang} settings={settings} />
+  <main>
+    <Marquee lang={lang} settings={settings} />
+    <About lang={lang} settings={settings} />
+    <Souxion lang={lang} settings={settings} />
+    <Projects lang={lang} projects={projects} />
+    <Stack lang={lang} settings={settings} />
+    <Services lang={lang} settings={settings} services={services} />
+    <Education lang={lang} settings={settings} />
+    <Contact lang={lang} settings={settings} />
+  </main>
+</Base>
+
+<script>
+  import '@/scripts/sections';
+</script>
