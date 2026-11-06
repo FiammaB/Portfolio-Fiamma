@@ -26,6 +26,13 @@ const embers = [
   [8, 92, 0], [17, 80, 2.4, 1], [29, 95, 4.1], [41, 86, 1.2], [52, 98, 6, 1],
   [63, 90, 3.3], [74, 82, 5.2], [86, 94, 0.8, 1], [94, 70, 7.1],
 ];
+// Foto de la portada en celular: la de fondo rojo y naranja
+const mobileShot = settings.shots.find((s) => s.ring.toLowerCase() === '#ff8a5b') ?? settings.shots[0];
+// Luz de cada área en la barra "Lo que hago"
+const AREA_COLORS = ['#8b6cff', '#4f7bff', '#5ee6a8'];
+const areaColor = (i: number, souxion?: boolean) => (souxion ? '#ff5000' : AREA_COLORS[i % AREA_COLORS.length]);
+const areaSide = (i: number, souxion?: boolean) => (souxion ? '#5b6eff' : areaColor(i));
+const [firstName, ...lastName] = settings.name.split(' ');
 ---
 
 <header class="hero" data-hero>
@@ -41,7 +48,14 @@ const embers = [
     }
   </div>
 
-  <Nav lang={lang} />
+  <div class="m-photo" aria-hidden="true">
+    <img src={mobileShot?.image.url} alt="" width={mobileShot?.image.width} height={mobileShot?.image.height} />
+    <div class="m-photo-fade"></div>
+    <div class="m-photo-glow"></div>
+  </div>
+
+  <Nav lang={lang} email={settings.email} />
+  <p class="m-avail"><span class="dot"></span>{t.hero.available}</p>
 
   <div id="inicio" class="hero-main wrap">
     <div class="hero-copy" id="contenido">
@@ -49,7 +63,10 @@ const embers = [
       <p class="hello">
         {t.hero.hello} <strong>{settings.name}</strong>, {t.hero.dev}
       </p>
+      <p class="m-kicker mono">{settings.role}</p>
       <h1 class="h1 display">
+        <span class="h1-m">{firstName}<br />{lastName.join(' ')}</span>
+        <span class="h1-d">
         Full<br />
         <span class="selected">
           Stack
@@ -63,11 +80,13 @@ const embers = [
           </span>
         </span>
         <span class="visually-hidden"> — {settings.role}</span>
+        </span>
       </h1>
       <p class="typed mono" aria-hidden="true">
         <span class="faint">&gt;</span>{' '}{t.hero.lead}{' '}<span class="hl" data-typed data-words={JSON.stringify(settings.typedWords)}>{settings.typedWords[0]}</span><span
           class="cursor"></span>
       </p>
+      <p class="m-intro">{t.hero.introPre} <a href="#souxion" class="soux-link">SOUXION</a>{t.hero.introPost}</p>
       <p class="intro">
         {copyBefore}{
           copyRest.length > 0 && (
@@ -80,9 +99,19 @@ const embers = [
       </p>
       <div class="actions">
         <a href="#proyectos" class="btn btn-accent">{t.hero.projects} <Icon name="arrow-right" /></a>
-        <a href={cv} class="btn btn-ghost" download><Icon name="download" /> {t.hero.cv}</a>
+        <a href={cv} class="btn btn-ghost" download><Icon name="download" /> <span class="cv-text">{t.hero.cv}</span></a>
         <a href={cvAlt} class="cv-alt mono" download>{t.hero.cvAlt} ↓</a>
       </div>
+      <dl class="m-stats">
+        {
+          settings.stats.map((st) => (
+            <div>
+              <dt class="m-stat-label mono">{st.label}</dt>
+              <dd class:list={['m-stat-value', { orange: st.tone === 'orange' }]}>{st.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
       <p class="meta mono">
         <span>◎ Argentina</span><span>⌂ UTN</span>
         <a href="#souxion" class="soux-link"><img src="/img/souxion-icono.webp" alt="" width="16" height="13" />SOUXION</a>
@@ -111,6 +140,7 @@ const embers = [
                 width={shot.image.width}
                 height={shot.image.height}
                 fetchpriority={i === 0 ? 'high' : 'low'}
+                loading={i === 0 ? 'eager' : 'lazy'}
                 data-shot={i}
                 data-glow={shot.glow}
               />
@@ -207,20 +237,57 @@ const embers = [
     </div>
   </div>
 
-  <ul class="features wrap">
-    {
-      settings.features.map((f, i) => (
-        <li>
-          <p class="mono num">
-            <span class={f.souxion ? 'soux' : 'acc'}>#</span>
-            {pad(i + 1)}
-          </p>
-          <p class="f-title">{f.title}</p>
-          <p class="mono f-stack">{f.stack}</p>
-        </li>
-      ))
-    }
-  </ul>
+  <div
+    class:list={['lqh wrap', { 'is-soux': settings.features[0]?.souxion }]}
+    data-tabs
+    data-areas
+    data-autoplay="3800"
+    style={`--side:${areaSide(0, settings.features[0]?.souxion)}`}
+  >
+    <div class="lglow lglow-l" aria-hidden="true"></div>
+    <div class="lglow lglow-r" aria-hidden="true"></div>
+    <div class="lchars lchars-l mono hide-sm" aria-hidden="true">
+      K 7 · Ω x 2 ⌁ R / 0 ◦ A<br />∂ 9 + Z q · L 4 ∴ T 8 ▪<br />s 1 · M ∑ v ◦ 3 / J ∆ c<br />Y · 6 k ⌘ P 0 + h ∫ W 5<br />r ◦ N 2 · Λ g / 7 E ∎ b<br />3 Q · ∞ d 8 + X ⌁ m 1 ·
+    </div>
+    <div class="lchars lchars-r mono hide-sm" aria-hidden="true">
+      · 4 H ◦ f ∑ 9 / B z 0 ∂<br />U 2 + λ n · 7 ∴ G k 5 ▪<br />◦ C 8 / ∆ w 1 · S p ⌘ 6<br />t · 0 F + Ω 3 j ∫ D ◦ y<br />9 a · ∎ K 4 / e ∞ V 2 +<br />· L 7 ∑ i 0 ◦ N ⌁ 5 x ∂
+    </div>
+    <div class="lbar">
+      <div class="lbar-head">
+        <span class="lbar-label mono">{t.hero.whatIDo}</span>
+        {
+          settings.features.map((f, i) => (
+            <p class="ltitle" id={`area-${i}`} role="tabpanel" aria-labelledby={`area-tab-${i}`} hidden={i !== 0}>
+              {f.title}<span class="lstack mono">{f.stack}</span>
+            </p>
+          ))
+        }
+      </div>
+      <div class="lbar-foot">
+        <div class="lpills" role="tablist" aria-label={t.hero.areasLabel}>
+          {
+            settings.features.map((f, i) => (
+              <button
+                type="button"
+                role="tab"
+                class="ltab mono"
+                id={`area-tab-${i}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls={`area-${i}`}
+                tabindex={i === 0 ? 0 : -1}
+                data-side={areaSide(i, f.souxion)}
+                data-soux={f.souxion ? 'true' : 'false'}
+                style={`--tab:${areaColor(i, f.souxion)}`}
+              >
+                <span class="ldot" aria-hidden="true"></span>{f.label}
+              </button>
+            ))
+          }
+        </div>
+        <a href="#proyectos" class="lgo hide-sm" aria-label={t.hero.projects}><Icon name="arrow-right" /></a>
+      </div>
+    </div>
+  </div>
 </header>
 
 <script>
@@ -230,7 +297,8 @@ const embers = [
 <style>
   .hero {
     position: relative;
-    padding: 24px var(--gutter) 0;
+    /* Deja lugar a la barra de navegación fija */
+    padding: 88px var(--gutter) 0;
     overflow: hidden;
     --mx: 900px;
     --my: 300px;
@@ -857,95 +925,408 @@ const embers = [
   }
 
   /* ---------- Fila de especialidades ---------- */
-  .features {
+  /* ---------- Barra "Lo que hago" ---------- */
+  .lqh {
     position: relative;
     z-index: 2;
-    list-style: none;
-    margin-top: 40px;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    border-top: 1px solid var(--line);
+    margin-top: 24px;
+    padding: 64px 0 96px;
+    display: flex;
+    justify-content: center;
+    --left-o: 0.45;
+    --side-o: 1;
+    --rim-l: 55%;
+    --rim-r: 95%;
+    transition: --side 0.8s ease;
   }
-  .features li {
-    padding: 26px 24px 34px 0;
+  .lqh.is-soux {
+    --left-o: 1;
+    --side-o: 0.45;
+    --rim-l: 95%;
+    --rim-r: 55%;
   }
-  .num {
-    font-size: 13px;
-    color: var(--muted);
+  .lglow {
+    position: absolute;
+    top: 50%;
+    width: 460px;
+    height: 300px;
+    margin-top: -170px;
+    border-radius: 50%;
+    filter: blur(28px);
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+    animation: breathe 6s ease-in-out infinite;
   }
-  .acc {
-    color: var(--accent);
+  .lglow-l {
+    left: calc(50% - 560px);
+    opacity: var(--left-o);
+    background: radial-gradient(ellipse at 70% 55%, rgba(255, 110, 60, 0.55), transparent 62%);
   }
-  .soux {
-    color: var(--peach);
+  .lglow-r {
+    right: calc(50% - 560px);
+    margin-top: -120px;
+    animation-delay: -3s;
+    opacity: var(--side-o);
+    background: radial-gradient(ellipse at 30% 50%, color-mix(in srgb, var(--side) 50%, transparent), transparent 62%);
   }
-  .f-title {
-    margin-top: 10px;
-    font-size: 18px;
-    font-weight: 500;
+  .lchars {
+    position: absolute;
+    top: 50%;
+    font-size: 11px;
+    line-height: 2.1;
+    letter-spacing: 0.55em;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+    mask-image: radial-gradient(ellipse at center, #000 20%, transparent 72%);
   }
-  .f-stack {
-    margin-top: 4px;
-    font-size: 12px;
+  .lchars-l {
+    left: calc(50% - 540px);
+    margin-top: -150px;
+    color: rgba(255, 138, 91, 0.5);
+    opacity: var(--left-o);
+  }
+  .lchars-r {
+    right: calc(50% - 540px);
+    margin-top: -40px;
+    color: color-mix(in srgb, var(--side) 50%, transparent);
+    opacity: var(--side-o);
+  }
+  .lbar {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+    padding: 18px 18px 14px;
+    border-radius: 22px;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#0c0a16, #0c0a16) padding-box,
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, #ff8a5b var(--rim-l), transparent),
+          rgba(196, 181, 255, 0.12) 40%,
+          rgba(196, 181, 255, 0.12) 60%,
+          color-mix(in srgb, var(--side) var(--rim-r), transparent)
+        )
+        border-box;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  }
+  .lbar-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 4px 6px 18px;
+    min-width: 0;
+  }
+  .lbar-label {
+    flex: none;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--muted-2);
   }
+  .ltitle {
+    min-width: 0;
+    font-size: 17px;
+    color: var(--text);
+    animation: fade-up 0.4s ease both;
+  }
+  .ltitle[hidden] {
+    display: none;
+  }
+  .lstack {
+    font-size: 13px;
+    color: var(--muted-2);
+  }
+  .lstack::before {
+    content: '\00a0\00a0—\00a0\00a0';
+  }
+  .lbar-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .lpills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ltab {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--muted);
+    border: 1px solid rgba(196, 181, 255, 0.14);
+    transition:
+      background 0.35s ease,
+      border-color 0.35s ease,
+      color 0.35s ease;
+  }
+  .ltab:hover {
+    color: var(--text);
+  }
+  .ltab:focus-visible {
+    outline: 2px solid var(--lilac);
+    outline-offset: 2px;
+  }
+  .ltab[aria-selected='true'] {
+    color: var(--text);
+    background: color-mix(in srgb, var(--tab) 12%, transparent);
+    border-color: color-mix(in srgb, var(--tab) 45%, transparent);
+  }
+  .ldot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(196, 181, 255, 0.35);
+    transition:
+      background 0.35s ease,
+      box-shadow 0.35s ease;
+  }
+  .ltab[aria-selected='true'] .ldot {
+    background: var(--tab);
+    box-shadow: 0 0 10px var(--tab);
+  }
+  .lgo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, #ff8a5b, var(--side));
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--side) 35%, transparent);
+  }
+  .lgo:hover {
+    color: #fff;
+    filter: brightness(1.1);
+  }
 
-  /* El escenario completo necesita ~1200px; en pantallas medianas se apila */
+  /* Piezas que solo existen en la portada de celular */
+  .m-photo,
+  .m-avail,
+  .m-kicker,
+  .m-intro,
+  .m-stats,
+  .h1-m {
+    display: none;
+  }
+
   @media (max-width: 1199px) {
     .stage {
       max-width: 720px;
       margin: 0 auto;
     }
   }
+  /* ---------- Portada en celular: foto arriba que se funde con el fondo ---------- */
   @media (max-width: 760px) {
-    .h1 {
-      font-size: clamp(48px, 15vw, 96px);
-    }
-    .selected {
-      margin-left: 0;
-      padding: 0 6px;
-    }
-    .cursor-tag {
+    .h1-d,
+    .availability,
+    .hello,
+    .typed,
+    .intro,
+    .cv-alt,
+    .meta,
+    .stage {
       display: none;
     }
-    .hello {
-      margin-top: 28px;
-      font-size: 18px;
-    }
-    .portrait-caption {
-      bottom: 76px;
-    }
-    .typed {
-      font-size: 16px;
-      min-height: 52px;
-    }
-    .stage {
-      height: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    .portrait {
-      position: relative;
+    .m-photo {
+      display: block;
+      position: absolute;
       left: 0;
+      right: 0;
       top: 0;
+      height: 520px;
+      z-index: 1;
+    }
+    .m-photo img {
       width: 100%;
-      height: auto;
-      aspect-ratio: 4 / 5;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 20%;
+      /* La foto se disuelve sobre el fondo de la portada, sin un corte visible */
+      mask-image: linear-gradient(180deg, #000 54%, transparent 100%);
     }
-    .editor {
-      position: relative;
+    .m-photo-fade {
+      position: absolute;
       left: 0;
-      top: 0;
-      width: auto;
-      margin: -60px 12px 0;
+      right: 0;
+      top: 280px;
+      height: 240px;
+      background: linear-gradient(180deg, rgba(8, 6, 15, 0) 0%, rgba(8, 6, 15, 0.7) 55%, rgba(8, 6, 15, 0) 100%);
     }
-    .editor-code {
+    .m-photo-glow {
+      position: absolute;
+      left: -80px;
+      right: -80px;
+      top: 380px;
+      height: 300px;
+      border-radius: 50%;
+      filter: blur(50px);
+      background: radial-gradient(ellipse at center, rgba(255, 90, 40, 0.35), rgba(124, 92, 255, 0.15) 50%, transparent 70%);
+    }
+    .hero {
+      padding-top: 0;
+    }
+    .m-avail {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: absolute;
+      left: var(--gutter);
+      top: 72px;
+      z-index: 3;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(8, 6, 15, 0.55);
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+      color: var(--text);
+    }
+    .m-avail .dot {
+      width: 7px;
+      height: 7px;
+    }
+    .hero-main {
+      padding-top: 386px;
+      gap: 0;
+    }
+    .m-kicker {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #ffc2a3;
+    }
+    .h1 {
+      margin-top: 8px;
+      font-size: clamp(44px, 13vw, 64px);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-transform: none;
+    }
+    .h1-m {
+      display: inline;
+    }
+    .m-intro {
+      display: block;
+      margin-top: 14px;
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: #cfc8e8;
+    }
+    .actions {
+      flex-wrap: nowrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .actions .btn-accent {
+      flex: 1;
+      min-height: 50px;
+      padding: 0 20px;
+      background: var(--text);
+      color: var(--bg);
+      box-shadow: none;
+    }
+    .actions .btn-ghost {
+      flex: none;
+      width: 50px;
+      height: 50px;
+      padding: 0;
+    }
+    .cv-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .m-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 24px 0 0;
+    }
+    .m-stats > div {
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: flex-end;
+    }
+    .m-stats dd {
+      margin: 0;
+    }
+    .m-stat-value {
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+    .m-stat-value.orange {
+      color: var(--peach);
+    }
+    .m-stat-label {
+      margin-top: 2px;
+      font-size: 10.5px;
+      line-height: 1.35;
+      color: var(--muted-2);
+    }
+    .lqh {
+      margin-top: 28px;
+      padding: 0 0 56px;
+    }
+    .lglow {
+      opacity: 0.45;
+    }
+    .lbar {
+      padding: 18px 0 0;
+      border: 0;
+      border-top: 1px solid rgba(196, 181, 255, 0.14);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .lbar-head {
+      padding: 0 0 14px;
+    }
+    .ltitle {
+      flex-basis: 100%;
+      font-size: 15px;
+    }
+    .lstack {
+      display: block;
+      margin-top: 2px;
       font-size: 12px;
     }
-    .features li {
-      padding: 20px 0 22px;
-      border-bottom: 1px solid var(--line);
+    .lstack::before {
+      content: none;
+    }
+    .lpills {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 6px;
+      width: calc(100% + 2 * var(--gutter));
+      margin: 0 calc(-1 * var(--gutter));
+      padding: 2px var(--gutter) 4px;
+      scrollbar-width: none;
+    }
+    .lpills::-webkit-scrollbar {
+      display: none;
+    }
+    .ltab {
+      flex: none;
+      min-height: 36px;
+      padding: 0 12px;
+      font-size: 12px;
     }
   }
 </style>

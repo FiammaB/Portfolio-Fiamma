@@ -5,9 +5,10 @@ import type { Lang } from '@/lib/types';
 
 interface Props {
   lang: Lang;
+  email: string;
 }
 
-const { lang } = Astro.props;
+const { lang, email } = Astro.props;
 const t = ui(lang);
 const links = [
   ['#inicio', t.nav.home],
@@ -17,6 +18,7 @@ const links = [
   ['#stack', t.nav.stack],
   ['#servicios', t.nav.services],
 ];
+const menuLinks = [...links, ['#contacto', t.nav.contact]];
 ---
 
 <nav class="nav wrap" aria-label={t.navLabel}>
@@ -40,13 +42,72 @@ const links = [
       <a href="/en/" hreflang="en" lang="en" aria-current={lang === 'en' ? 'true' : undefined}>EN</a>
     </div>
     <a href="#servicios" class="hire">{t.hire} <Icon name="arrow-up-right" size={14} /></a>
+    <button type="button" class="burger" aria-label={t.menu.open} aria-expanded="false" aria-controls="menu-movil" data-menu-open>
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+    </button>
   </div>
 </nav>
 
+<!-- Afuera de <nav>: el desenfoque de la barra haría que "fixed" se mida contra ella -->
+<div class="menu" id="menu-movil" role="dialog" aria-modal="true" aria-label={t.menu.label} inert data-menu>
+  <div class="menu-glow" aria-hidden="true"></div>
+  <div class="menu-top">
+    <span class="logo mono" aria-hidden="true">&lt;FB/&gt;</span>
+    <button type="button" class="burger close" aria-label={t.menu.close} data-menu-close>
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+  <div class="menu-links">
+    {
+      menuLinks.map(([href, label], i) => (
+        <a class:list={['mlink display', { soux: href === '#souxion' }]} href={href} style={`--i:${i}`}>
+          <span class="mono">{String(i + 1).padStart(2, '0')}</span>
+          {label}
+        </a>
+      ))
+    }
+  </div>
+  <div class="menu-foot">
+    <a href={`mailto:${email}`}>{email}</a>
+    <p class="mono">{t.menu.available}</p>
+  </div>
+</div>
+
+<script>
+  // Menú de celular: pantalla completa; se cierra con Escape, con la X o al elegir un link
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const open = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+  const close = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+  if (menu && open && close) {
+    const toggle = (on: boolean) => {
+      menu.classList.toggle('is-open', on);
+      menu.inert = !on;
+      open.setAttribute('aria-expanded', String(on));
+      document.documentElement.classList.toggle('menu-open', on);
+      (on ? close : open).focus({ preventScroll: true });
+    };
+    open.addEventListener('click', () => toggle(true));
+    close.addEventListener('click', () => toggle(false));
+    menu.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', () => toggle(false)));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.classList.contains('is-open')) toggle(false);
+    });
+  }
+</script>
+
 <style>
   .nav {
-    position: relative;
-    z-index: 8;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    max-width: none;
+    margin: 0;
+    padding: 12px max(24px, calc((100% - var(--max)) / 2));
+    background: rgba(8, 6, 15, 0.72);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(196, 181, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -143,14 +204,154 @@ const links = [
       display: none;
     }
   }
+  .burger {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(196, 181, 255, 0.22);
+    background: rgba(18, 13, 32, 0.6);
+    color: var(--text);
+  }
+  .burger:focus-visible {
+    outline: 2px solid var(--lilac);
+    outline-offset: 2px;
+  }
+  .burger.close {
+    display: inline-flex;
+  }
+
+  /* Menú de pantalla completa */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 20px 28px;
+    overflow: hidden auto;
+    background: rgba(8, 6, 15, 0.92);
+    backdrop-filter: blur(18px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.35s ease,
+      visibility 0.35s ease;
+  }
+  .menu.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .menu-glow {
+    position: absolute;
+    right: -120px;
+    top: 80px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    filter: blur(50px);
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.35), rgba(255, 110, 60, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
+  .menu-top {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .menu-links {
+    position: relative;
+    margin-top: 36px;
+  }
+  .mlink {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px 0;
+    color: var(--text);
+    /* "PROYECTOS" es la palabra más larga: tiene que entrar en teléfonos angostos */
+    font-size: min(32px, calc((100vw - 68px) / 10.4));
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(196, 181, 255, 0.1);
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .is-open .mlink {
+    opacity: 1;
+    transform: none;
+    transition-delay: calc(0.08s + var(--i) * 0.05s);
+  }
+  .mlink .mono {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--faint);
+  }
+  .mlink.soux {
+    color: var(--peach);
+  }
+  .menu-foot {
+    position: relative;
+    margin-top: auto;
+    padding-top: 28px;
+  }
+  .menu-foot a {
+    display: inline-block;
+    padding-bottom: 6px;
+    font-size: 15px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(196, 181, 255, 0.45);
+  }
+  .menu-foot p {
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--green);
+  }
+  :global(html.menu-open) {
+    overflow: hidden;
+  }
   @media (max-width: 1000px) {
     .links {
       display: none;
     }
+    .burger {
+      display: inline-flex;
+    }
   }
-  @media (max-width: 420px) {
-    .brand .mono:last-child {
+  @media (max-width: 760px) {
+    .nav {
+      padding: 10px var(--gutter);
+    }
+    .hire {
       display: none;
+    }
+    .logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      font-size: 10px;
+    }
+    .brand {
+      gap: 8px;
+      font-size: 12.5px;
+    }
+    .burger {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+    }
+    .lang a {
+      padding: 5px 9px;
     }
   }
 </style>

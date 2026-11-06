@@ -1,5 +1,7 @@
-// Interacciones de las secciones: pestañas (SOUXION y Stack), filtros y
-// acordeón de proyectos, y link activo de la navegación.
+// Interacciones de las secciones: pestañas (SOUXION y Stack, con avance
+// automático opcional), filtros y vista previa de proyectos, y link activo de la navegación.
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------- Pestañas accesibles ----------
 // Cualquier [data-tabs] con un [role=tablist] y paneles vinculados por aria-controls
@@ -34,6 +36,47 @@ document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((group) => {
       select(tabs[target], true);
     });
   });
+
+  // Avance automático ([data-autoplay]=ms): solo mientras el grupo se ve. Si la
+  // persona toca, usa el teclado o enfoca una pestaña, se detiene para siempre.
+  const delay = Number(group.dataset.autoplay);
+  if (!delay || reduced) return;
+  const bar = group.querySelector<HTMLElement>('.tab-progress');
+  group.style.setProperty('--autoplay', `${delay}ms`);
+  let stopped = false;
+  let visible = false;
+  let timer = 0;
+
+  const current = () => tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+  function schedule() {
+    clearTimeout(timer);
+    bar?.classList.remove('is-running');
+    if (stopped || !visible || document.hidden) return;
+    void bar?.offsetWidth; // reinicia la animación de la barrita
+    bar?.classList.add('is-running');
+    timer = window.setTimeout(() => {
+      select(tabs[(current() + 1) % tabs.length]);
+      schedule();
+    }, delay);
+  }
+  function stop() {
+    if (stopped) return;
+    stopped = true;
+    clearTimeout(timer);
+    bar?.classList.remove('is-running');
+    bar?.classList.add('is-stopped');
+  }
+
+  const list = group.querySelector('[role="tablist"]');
+  ['pointerdown', 'keydown', 'focusin'].forEach((type) => list?.addEventListener(type, stop));
+  new IntersectionObserver(
+    ([entry]) => {
+      visible = entry.isIntersecting;
+      schedule();
+    },
+    { threshold: 0.4 },
+  ).observe(group);
+  document.addEventListener('visibilitychange', schedule);
 });
 
 // ---------- Anillo del stack: cantidad y nombre de la categoría elegida ----------
@@ -46,24 +89,19 @@ stack?.addEventListener('tabchange', (e) => {
   if (label) label.textContent = tab.dataset.label ?? '';
 });
 
-// ---------- Proyectos: filtros + acordeón ----------
+// ---------- Lo que hago: la barra toma el color del área elegida ----------
+const areas = document.querySelector<HTMLElement>('[data-areas]');
+areas?.addEventListener('tabchange', (e) => {
+  const tab = (e as CustomEvent<HTMLButtonElement>).detail;
+  areas.style.setProperty('--side', tab.dataset.side ?? '');
+  areas.classList.toggle('is-soux', tab.dataset.soux === 'true');
+});
+
+// ---------- Proyectos: filtros ----------
 const filters = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
 const rows = [...document.querySelectorAll<HTMLElement>('[data-projects] > li')];
-
-function setOpen(row: HTMLElement, open: boolean) {
-  const button = row.querySelector<HTMLButtonElement>('[aria-expanded]');
-  const detail = row.querySelector<HTMLElement>('[role="region"]');
-  button?.setAttribute('aria-expanded', String(open));
-  if (detail) detail.hidden = !open;
-}
-
-rows.forEach((row) => {
-  row.querySelector('[aria-expanded]')?.addEventListener('click', () => {
-    const wasOpen = row.querySelector('[aria-expanded]')?.getAttribute('aria-expanded') === 'true';
-    rows.forEach((r) => setOpen(r, false));
-    setOpen(row, !wasOpen);
-  });
-});
+const projectCount = document.querySelector('[data-project-count]');
+const pad2 = (n: number) => String(n).padStart(2, '0');
 
 filters.forEach((button) =>
   button.addEventListener('click', () => {
@@ -72,16 +110,105 @@ filters.forEach((button) =>
     const visible = rows.filter((row) => id === 'todos' || row.dataset.cats?.split(' ').includes(id));
     rows.forEach((row) => {
       row.hidden = !visible.includes(row);
-      setOpen(row, false);
     });
-    // Renumera los visibles y abre el primero, como en la maqueta
     visible.forEach((row, i) => {
       const num = row.querySelector('[data-num]');
-      if (num) num.textContent = `[${String(i + 1).padStart(2, '0')}]`;
+      if (num) num.textContent = pad2(i + 1);
     });
-    if (visible[0]) setOpen(visible[0], true);
+    if (projectCount) projectCount.textContent = pad2(visible.length);
   }),
 );
+
+// ---------- Proyectos: vista previa que sigue al mouse ----------
+const plist = document.querySelector<HTMLElement>('[data-plist]');
+const preview = plist?.querySelector<HTMLElement>('[data-preview]');
+
+if (plist && preview) {
+  const cards = [...preview.querySelectorAll<HTMLElement>('[data-card]')];
+  const canPreview = window.matchMedia('(hover: hover) and (min-width: 761px)');
+  let shown = false;
+  let frame = 0;
+  let lastX = 0;
+  let settle = 0;
+  let pointerX = 0;
+  let pointerY = 0;
+
+  // Se ubica al lado del punto; si no entra a la derecha, pasa a la izquierda
+  function place(x: number, y: number) {
+    const w = preview!.offsetWidth;
+    const h = preview!.offsetHeight;
+    const left = x + 32 + w > plist!.offsetWidth + 24 ? x - w - 32 : x + 32;
+    const top = Math.max(-40, Math.min(y - 150, plist!.offsetHeight - h + 40));
+    preview!.style.setProperty('--px', `${Math.round(left)}px`);
+    preview!.style.setProperty('--py', `${Math.round(top)}px`);
+    plist!.style.setProperty('--mx', `${Math.round(x)}px`);
+    plist!.style.setProperty('--my', `${Math.round(y)}px`);
+  }
+
+  function show(row: HTMLElement, x: number, y: number) {
+    if (!canPreview.matches) return;
+    cards.forEach((c) => c.classList.toggle('is-on', c.dataset.card === row.dataset.row));
+    plist!.dataset.tone = row.dataset.tone;
+    if (shown) return;
+    // Al aparecer va directo al lugar, sin cruzar la lista desde donde quedó
+    preview!.style.transition = 'none';
+    place(x, y);
+    void preview!.offsetWidth;
+    preview!.style.transition = '';
+    shown = true;
+    lastX = x;
+    plist!.classList.add('is-previewing');
+  }
+
+  function hide() {
+    shown = false;
+    plist!.classList.remove('is-previewing');
+  }
+
+  plist.addEventListener('pointerover', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const row = (e.target as HTMLElement).closest<HTMLElement>('[data-row]');
+    if (!row) return;
+    const r = plist.getBoundingClientRect();
+    show(row, e.clientX - r.left, e.clientY - r.top);
+  });
+
+  plist.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    pointerX = e.clientX;
+    pointerY = e.clientY;
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (!shown) return;
+      const r = plist.getBoundingClientRect();
+      const x = pointerX - r.left;
+      place(x, pointerY - r.top);
+      if (reduced) return;
+      // Se inclina según la velocidad del mouse y al frenar vuelve a su lugar
+      const tilt = Math.max(-9, Math.min(9, (x - lastX) * 0.45)) - 2;
+      lastX = x;
+      preview.style.setProperty('--pr', `${tilt.toFixed(1)}deg`);
+      clearTimeout(settle);
+      settle = window.setTimeout(() => preview.style.removeProperty('--pr'), 140);
+    });
+  });
+
+  plist.addEventListener('pointerleave', hide);
+
+  // Con teclado aparece junto a la fila enfocada
+  plist.addEventListener('focusin', (e) => {
+    const row = (e.target as HTMLElement).closest<HTMLElement>('[data-row]');
+    if (!row || !row.matches(':focus-visible')) return;
+    const r = plist.getBoundingClientRect();
+    const rr = row.getBoundingClientRect();
+    hide();
+    show(row, r.width * 0.42, rr.top - r.top + rr.height / 2);
+  });
+  plist.addEventListener('focusout', hide);
+
+  filters.forEach((b) => b.addEventListener('click', hide));
+}
 
 // ---------- Link activo de la navegación ----------
 const navlinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-navlink]')];

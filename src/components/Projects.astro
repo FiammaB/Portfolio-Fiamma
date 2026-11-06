@@ -12,6 +12,7 @@ const t = ui(lang).projects;
 const filters = Object.entries(t.filters) as [ProjectCategory | 'todos', string][];
 const count = (id: string) => (id === 'todos' ? projects.length : projects.filter((p) => p.categories.includes(id as ProjectCategory)).length);
 const pad = (n: number) => String(n).padStart(2, '0');
+const label = (p: Project) => p.domain ?? p.url?.replace(/^https?:\/\//, '').replace(/\/$/, '') ?? p.title;
 ---
 
 <section id="proyectos" class="section">
@@ -19,82 +20,94 @@ const pad = (n: number) => String(n).padStart(2, '0');
     <div class="head" data-reveal>
       <div>
         <p class="label">{t.kicker}</p>
-        <h2 class="h2 display">{t.title}<br /><span class="hl">{t.highlight}</span></h2>
+        <h2 class="h2 display sans">{t.title}<br /><span class="hl">{t.highlight}</span></h2>
       </div>
-      <p class="intro">{t.copy}</p>
-    </div>
-
-    <div class="filters" role="group" aria-label={t.filtersLabel} data-filters>
-      {
-        filters
-          .filter(([id]) => count(id) > 0)
-          .map(([id, label], i) => (
-            <button type="button" class="pill" data-filter={id} aria-pressed={i === 0 ? 'true' : 'false'}>
-              {label}<span class="count">{count(id)}</span>
-            </button>
-          ))
-      }
-    </div>
-
-    <ul class="list" data-projects>
-      {
-        projects.map((p, i) => (
-          <li class="row" data-cats={p.categories.join(' ')}>
-            <h3>
-              <button
-                type="button"
-                class="toggle"
-                aria-expanded={i === 0 ? 'true' : 'false'}
-                aria-controls={`proyecto-${i}`}
-                id={`proyecto-btn-${i}`}
-              >
-                <span class="num mono" data-num>[{pad(i + 1)}]</span>
-                <span class="name">{p.title}</span>
-                <span class:list={['tag mono', p.tone]}>{p.kind}</span>
-                <span class="stack mono hide-sm">{p.stack}</span>
-                <span class="arrow" aria-hidden="true">↗</span>
+      <div class="filters" role="group" aria-label={t.filtersLabel} data-filters>
+        {
+          filters
+            .filter(([id]) => count(id) > 0)
+            .map(([id, name], i) => (
+              <button type="button" class="pill" data-filter={id} aria-pressed={i === 0 ? 'true' : 'false'}>
+                {name}<span class="count">{count(id)}</span>
               </button>
-            </h3>
-            <div class="detail" id={`proyecto-${i}`} role="region" aria-labelledby={`proyecto-btn-${i}`} hidden={i !== 0}>
-              <div class="window">
-                <div class="window-bar">
-                  <span></span><span></span><span></span>
-                  <span class="window-title mono">{p.title}</span>
-                </div>
-                {
-                  p.image ? (
-                    <img src={p.image.url} alt={p.image.alt} width={p.image.width} height={p.image.height} loading="lazy" />
-                  ) : (
-                    <div class:list={['placeholder', p.placeholder]}>
-                      {p.placeholder === 'souxion' && (
-                        <>
-                          <img class="ph-icon" src="/img/souxion-isotipo.webp" alt="" width="400" height="327" loading="lazy" />
-                          <img class="ph-logo" src="/img/souxion-logo.webp" alt="SOUXION" width="1002" height="129" loading="lazy" />
-                        </>
-                      )}
-                      {p.placeholder === 'web' && <span class="mono">{p.domain ?? p.url?.replace(/^https?:\/\//, '')} ↗</span>}
-                      {p.placeholder === 'code' && <span class="mono">{t.repo}</span>}
-                      {p.placeholder === 'soon' && <span class="mono">{t.soon}</span>}
-                    </div>
-                  )
-                }
+            ))
+        }
+      </div>
+    </div>
+
+    <p class="list-head mono hide-sm">
+      <span>{t.listHead}</span>
+      <span class="list-count"><span data-project-count>{pad(projects.length)}</span> {t.countLabel}</span>
+    </p>
+
+    <div class="plist" data-plist>
+      <div class="spot" aria-hidden="true"></div>
+      <ul class="list" data-projects>
+        {
+          projects.map((p, i) => {
+            const Row = p.url ? 'a' : 'div';
+            const link = p.url ? { href: p.url, target: '_blank', rel: 'noopener' } : {};
+            return (
+              <li data-cats={p.categories.join(' ')} data-reveal style={`--reveal-index:${Math.min(i, 6)}`}>
+                <Row
+                  class:list={['prow', p.tone]}
+                  {...link}
+                  data-row={i}
+                  data-tone={p.tone}
+                  aria-describedby={`proyecto-${i}`}
+                >
+                  <span class="num mono" data-num>{pad(i + 1)}</span>
+                  <h3 class="pname">
+                    {p.title}
+                    {p.tone === 'souxion' && <span class="pmark" aria-hidden="true" />}
+                  </h3>
+                  <span class="pstack mono">{p.stack}</span>
+                  <span class:list={['tag mono', p.tone]}>{p.kind}</span>
+                  {p.url && <span class="parrow" aria-hidden="true">↗</span>}
+                </Row>
+                <p class="visually-hidden" id={`proyecto-${i}`}>{p.description}</p>
+              </li>
+            );
+          })
+        }
+      </ul>
+
+      <!-- Vista previa que sigue al mouse (en celular no se muestra ni descarga) -->
+      <div class="preview" aria-hidden="true" data-preview>
+        {
+          projects.map((p, i) => (
+            <div class:list={['pcard', p.tone]} data-card={i}>
+              <div class="pbar">
+                <span></span><span></span><span></span>
+                <span class="pbar-title mono">{label(p)}</span>
               </div>
-              <div class="info">
-                <p class="desc">{p.description}</p>
-                <p class="mono info-stack">{p.stack}</p>
-                {
-                  p.url ? (
-                    <a href={p.url} target="_blank" rel="noopener" class="btn btn-light">{p.cta} ↗</a>
-                  ) : (
-                    <span class="btn btn-light" aria-disabled="true">{p.cta}</span>
-                  )
-                }
+              {
+                p.image ? (
+                  <img src={p.image.url} alt="" width={p.image.width} height={p.image.height} loading="lazy" />
+                ) : (
+                  <div class:list={['placeholder', p.placeholder]}>
+                    {p.placeholder === 'souxion' && (
+                      <>
+                        <img class="ph-icon" src="/img/souxion-isotipo.webp" alt="" width="400" height="327" loading="lazy" />
+                        <img class="ph-logo" src="/img/souxion-logo.webp" alt="" width="1002" height="129" loading="lazy" />
+                      </>
+                    )}
+                    {p.placeholder === 'web' && <span class="mono">{label(p)} ↗</span>}
+                    {p.placeholder === 'code' && <span class="mono">{t.repo}</span>}
+                    {p.placeholder === 'soon' && <span class="mono">{t.soon}</span>}
+                  </div>
+                )
+              }
+              <p class="pdesc">{p.description}</p>
+              <div class="pfoot">
+                <span class="pfoot-name">{p.title}</span>
+                {p.url && <span class="pfoot-cta mono">{p.cta} ↗</span>}
               </div>
             </div>
-          </li>
-        ))
-      }
-    </ul>
+          ))
+        }
+      </div>
+    </div>
   </div>
 </section>
 
@@ -107,69 +120,146 @@ const pad = (n: number) => String(n).padStart(2, '0');
     gap: 24px;
     margin-bottom: 36px;
   }
-  .intro {
-    max-width: 400px;
-    color: var(--muted);
-    font-size: 16px;
-    line-height: 1.6;
-  }
   .filters {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 28px;
+  }
+  .list-head {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .list-count {
+    padding-right: 44px;
+  }
+  .plist {
+    position: relative;
+    isolation: isolate;
+    border-top: 1px solid rgba(196, 181, 255, 0.12);
+    --glow: 124, 92, 255;
+    --mx: 0px;
+    --my: 0px;
+  }
+  .plist[data-tone='souxion'] {
+    --glow: 255, 80, 0;
+  }
+  .plist[data-tone='dev'] {
+    --glow: 245, 199, 107;
+  }
+  .plist[data-tone='muted'] {
+    --glow: 196, 181, 255;
+  }
+  .spot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 640px;
+    height: 640px;
+    margin: -320px 0 0 -320px;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(30px);
+    z-index: -1;
+    opacity: 0;
+    transform: translate(var(--mx), var(--my));
+    background: radial-gradient(circle, rgba(var(--glow), 0.22), transparent 60%);
+    transition: opacity 0.5s ease;
+  }
+  .plist.is-previewing .spot {
+    opacity: 1;
   }
   .list {
     list-style: none;
     padding: 0;
     margin: 0;
-    border-top: 1px solid var(--line);
   }
-  .row {
-    border-bottom: 1px solid var(--line);
-    transition: background 0.3s ease;
-  }
-  .row:hover {
-    background: rgba(124, 92, 255, 0.07);
-  }
-  .row[hidden] {
+  li[hidden] {
     display: none;
   }
-  h3 {
-    font: inherit;
-  }
-  .toggle {
-    all: unset;
-    cursor: pointer;
-    box-sizing: border-box;
-    width: 100%;
-    display: flex;
+
+  /* Fila: al pasar el mouse la cruza una franja de luz del color del proyecto */
+  .prow {
+    --g: rgba(124, 92, 255, 0.5);
+    display: grid;
+    /* Columnas fijas para que tecnologías y etiquetas queden alineadas entre filas */
+    grid-template-columns: 40px minmax(0, 1fr) 230px 140px 20px;
     align-items: center;
     gap: 24px;
-    padding: 26px 8px;
-    flex-wrap: wrap;
+    min-height: 76px;
+    padding: 0 12px 0 4px;
+    border-bottom: 1px solid rgba(196, 181, 255, 0.12);
+    color: var(--text);
+    background-repeat: no-repeat;
+    background-size: 0% 100%;
+    transition:
+      background-size 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.4s ease,
+      box-shadow 0.6s ease;
   }
-  .toggle:focus-visible {
+  .prow:focus-visible {
+    background-size: 100% 100%;
     outline: 2px solid var(--lilac);
     outline-offset: -2px;
   }
+  .prow.accent {
+    background-image: linear-gradient(90deg, rgba(124, 92, 255, 0) 0%, rgba(124, 92, 255, 0.18) 40%, rgba(124, 92, 255, 0.7) 78%, #dcd4ff 100%);
+  }
+  .prow.souxion {
+    --g: rgba(255, 80, 0, 0.5);
+    background-image: linear-gradient(90deg, rgba(255, 80, 0, 0) 0%, rgba(255, 80, 0, 0.18) 40%, rgba(255, 80, 0, 0.7) 78%, #ffd2b0 100%);
+  }
+  .prow.dev {
+    --g: rgba(245, 199, 107, 0.5);
+    background-image: linear-gradient(90deg, rgba(245, 199, 107, 0) 0%, rgba(245, 199, 107, 0.1) 40%, rgba(245, 199, 107, 0.38) 78%, #fff0c8 100%);
+  }
+  .prow.muted {
+    --g: rgba(196, 181, 255, 0.5);
+    background-image: linear-gradient(90deg, rgba(196, 181, 255, 0) 0%, rgba(196, 181, 255, 0.1) 40%, rgba(196, 181, 255, 0.38) 78%, #ece8ff 100%);
+  }
   .num {
-    width: 44px;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--faint);
   }
-  .name {
-    flex: 1 1 280px;
-    font-size: 26px;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    color: var(--text);
+  .pname {
+    min-width: 0;
+    font-family: var(--font);
+    font-size: 30px;
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    transition:
+      transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+      text-shadow 0.45s ease;
+  }
+  .pmark {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 10px;
+    border-radius: 50%;
+    vertical-align: 0.35em;
+    background: var(--orange);
+    box-shadow: 0 0 10px var(--orange);
+  }
+  .pstack {
+    font-size: 12px;
+    color: var(--muted-2);
+    transition: color 0.4s ease;
   }
   .tag {
-    font-size: 12px;
+    justify-self: end;
+    font-size: 11px;
     padding: 6px 12px;
     border-radius: 999px;
     white-space: nowrap;
+    transition:
+      background 0.4s ease,
+      color 0.4s ease;
   }
   .tag.souxion {
     background: var(--orange);
@@ -187,70 +277,112 @@ const pad = (n: number) => String(n).padStart(2, '0');
     border: 1px solid var(--line-strong);
     color: #c9c1e6;
   }
-  .stack {
-    width: 230px;
-    font-size: 13px;
-    color: var(--muted-2);
+  .parrow {
+    font-size: 20px;
+    color: var(--faint);
+    transition:
+      transform 0.35s ease,
+      color 0.35s ease;
   }
-  .arrow {
-    font-size: 22px;
-    color: var(--muted-2);
-    transition: transform 0.3s ease;
+  @media (hover: hover) {
+    .prow:hover {
+      background-size: 100% 100%;
+      box-shadow:
+        40px 0 70px -12px var(--g),
+        inset 0 1px 0 var(--g);
+    }
+    .list:hover .prow:not(:hover) {
+      opacity: 0.32;
+    }
+    .prow:hover .pname {
+      transform: translateX(14px);
+      text-shadow: 0 0 28px var(--g);
+    }
+    .prow:hover .pstack {
+      color: var(--text);
+    }
+    .prow:hover .parrow {
+      transform: rotate(45deg);
+      color: var(--bg);
+    }
+    /* Sobre la punta clara de la luz, la etiqueta sin relleno necesita fondo propio */
+    .prow:hover .tag.muted {
+      background: var(--bg);
+      color: var(--text);
+    }
   }
-  [aria-expanded='true'] .num,
-  [aria-expanded='true'] .arrow {
-    color: var(--accent);
-  }
-  [aria-expanded='true'] .arrow {
-    transform: rotate(90deg);
-  }
-  .detail {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    padding: 0 8px 32px 76px;
-    animation: fade-up 0.5s ease both;
-  }
-  .detail[hidden] {
-    display: none;
-  }
-  .window {
-    flex: 1 1 420px;
-    min-width: 0;
-    border-radius: 16px;
+
+  /* Vista previa flotante: una tarjeta por proyecto, apiladas en la misma celda */
+  .preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    display: grid;
+    width: 360px;
+    border-radius: 14px;
     overflow: hidden;
-    border: 1px solid rgba(196, 181, 255, 0.16);
+    border: 1px solid rgba(196, 181, 255, 0.2);
+    background: var(--bg);
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.6),
+      0 0 60px rgba(var(--glow), 0.25);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(var(--px, 0), var(--py, 0)) rotate(var(--pr, -6deg)) scale(0.85);
+    transition:
+      opacity 0.3s ease,
+      transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .plist.is-previewing .preview {
+    opacity: 1;
+    transform: translate(var(--px, 0), var(--py, 0)) rotate(var(--pr, -2deg)) scale(1);
+  }
+  .pcard {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.25s ease;
     background: var(--bg);
   }
-  .window-bar {
+  .pcard.is-on {
+    opacity: 1;
+  }
+  .pbar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(196, 181, 255, 0.12);
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid rgba(196, 181, 255, 0.14);
   }
-  .window-bar > span:not(.window-title) {
-    width: 9px;
-    height: 9px;
+  .pbar > span:not(.pbar-title) {
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #3a3157;
   }
-  .window-title {
+  .pbar-title {
     flex: 1;
+    min-width: 0;
     text-align: center;
-    font-size: 12px;
+    font-size: 10px;
     color: var(--muted-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .window > img {
+  .pcard > img,
+  .placeholder {
+    flex: none;
     width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
+    height: 200px;
     object-fit: cover;
     object-position: top;
   }
   .placeholder {
     position: relative;
-    aspect-ratio: 16 / 9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,14 +394,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
     color: #fff;
   }
   .placeholder.web .mono {
-    font-size: 18px;
-    letter-spacing: 0.02em;
     padding: 0 16px;
     text-align: center;
   }
   .placeholder.code {
     background:
-      repeating-linear-gradient(0deg, rgba(196, 181, 255, 0.04) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(0deg, rgba(196, 181, 255, 0.05) 0 1px, transparent 1px 26px),
       #0e0a1a;
   }
   .placeholder.soon {
@@ -291,38 +421,108 @@ const pad = (n: number) => String(n).padStart(2, '0');
     height: auto;
     filter: brightness(0) invert(1);
   }
-  .info {
-    flex: 1 1 320px;
-    min-width: 0;
-  }
-  .desc {
-    color: #b9b1d6;
-    line-height: 1.7;
-    font-size: 16px;
-  }
-  .info-stack {
-    margin: 22px 0;
+  .pdesc {
+    flex: 1;
+    padding: 12px 14px;
     font-size: 13px;
-    color: var(--text-soft);
+    line-height: 1.55;
+    color: #b9b1d6;
+  }
+  .pfoot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #0e0a1a;
+    border-top: 1px solid rgba(196, 181, 255, 0.12);
+  }
+  .pfoot-name {
+    min-width: 0;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pfoot-cta {
+    flex: none;
+    font-size: 11px;
+    color: var(--lilac);
+  }
+  .souxion .pfoot-cta {
+    color: var(--peach);
+  }
+
+  @media (max-width: 1000px) {
+    .prow {
+      grid-template-columns: 32px minmax(0, 1fr) 170px 124px 20px;
+      gap: 16px;
+    }
+    .pname {
+      font-size: 24px;
+    }
+  }
+  /* Sin mouse o en pantallas chicas no hay vista previa (ni se descargan sus imágenes) */
+  @media (hover: none), (max-width: 760px) {
+    .preview,
+    .spot {
+      display: none;
+    }
   }
   @media (max-width: 760px) {
-    .toggle {
-      gap: 10px 16px;
-      padding: 20px 4px;
+    .head {
+      margin-bottom: 20px;
+      gap: 18px;
+    }
+    .filters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 6px;
+      width: calc(100% + 2 * var(--gutter));
+      margin: 0 calc(-1 * var(--gutter));
+      padding: 2px var(--gutter) 4px;
+      scrollbar-width: none;
+    }
+    .filters::-webkit-scrollbar {
+      display: none;
+    }
+    .filters .pill {
+      flex: none;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+    .prow {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      grid-template-areas:
+        'num name tag'
+        '. stack tag';
+      gap: 3px 10px;
+      min-height: 60px;
+      padding: 12px 0;
     }
     .num {
-      width: auto;
+      grid-area: num;
+      font-size: 10px;
     }
-    .name {
-      flex-basis: calc(100% - 80px);
-      font-size: 20px;
+    .pname {
+      grid-area: name;
+      font-size: 18px;
     }
-    .arrow {
-      margin-left: auto;
+    .pmark {
+      display: none;
     }
-    .detail {
-      padding: 0 4px 28px;
-      gap: 20px;
+    .pstack {
+      grid-area: stack;
+      font-size: 11px;
+    }
+    .tag {
+      grid-area: tag;
+      font-size: 10px;
+      padding: 4px 8px;
+    }
+    .parrow {
+      display: none;
     }
   }
 </style>

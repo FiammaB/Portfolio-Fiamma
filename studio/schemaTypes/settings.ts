@@ -73,21 +73,14 @@ export const settings = defineType({
           type: 'object',
           name: 'feature',
           fields: [
+            defineField({ name: 'label', title: 'Nombre corto (pestaña)', type: 'localeString' }),
             defineField({ name: 'title', title: 'Título', type: 'localeString' }),
             defineField({ name: 'stack', title: 'Tecnologías', type: 'string' }),
-            defineField({ name: 'souxion', title: 'Numeral en naranja (SOUXION)', type: 'boolean', initialValue: false }),
+            defineField({ name: 'souxion', title: 'Pestaña en naranja (SOUXION)', type: 'boolean', initialValue: false }),
           ],
           preview: { select: { title: 'title.es', subtitle: 'stack' } },
         }),
       ],
-    }),
-    defineField({
-      name: 'marquee',
-      title: 'Cinta violeta',
-      description: 'Las palabras que se desplazan debajo de la portada.',
-      type: 'array',
-      group: 'portada',
-      of: [defineArrayMember({ type: 'string' })],
     }),
 
     // ---------- Sobre mí ----------

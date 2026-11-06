@@ -15,6 +15,8 @@ export interface Shot {
 }
 
 export interface Feature {
+  // Nombre corto de la pestaña en la barra "Lo que hago"
+  label: string;
   title: string;
   stack: string;
   souxion?: boolean;
@@ -51,7 +53,6 @@ export interface Settings {
   typedWords: string[];
   shots: Shot[];
   features: Feature[];
-  marquee: string[];
   aboutLead: string;
   aboutCopy: string;
   traits: string[];
