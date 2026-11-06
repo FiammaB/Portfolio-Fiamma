@@ -2,7 +2,6 @@
 // La página completa. index.astro (español) y en/index.astro (inglés) la usan con su idioma.
 import Base from '@/layouts/Base.astro';
 import Hero from './Hero.astro';
-import Marquee from './Marquee.astro';
 import About from './About.astro';
 import Souxion from './Souxion.astro';
 import Projects from './Projects.astro';
@@ -24,7 +23,6 @@ const [settings, projects, services] = await Promise.all([getSettings(lang), get
 <Base lang={lang}>
   <Hero lang={lang} settings={settings} />
   <main>
-    <Marquee lang={lang} settings={settings} />
     <About lang={lang} settings={settings} />
     <Souxion lang={lang} settings={settings} />
     <Projects lang={lang} projects={projects} />
@@ -37,4 +35,5 @@ const [settings, projects, services] = await Promise.all([getSettings(lang), get
 
 <script>
   import '@/scripts/sections';
+  import '@/scripts/scroll-fx';
 </script>

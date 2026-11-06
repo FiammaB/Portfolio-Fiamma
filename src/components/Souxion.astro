@@ -13,24 +13,31 @@ const { lang, settings } = Astro.props;
 const t = ui(lang).souxion;
 const s = settings.souxion;
 const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const words = (text: string) => text.split(/\s+/).filter(Boolean);
 ---
 
 <section id="souxion" class="souxion">
   <div class="fire" aria-hidden="true"></div>
   <div class="topline" aria-hidden="true"></div>
-  <img class="watermark" aria-hidden="true" alt="" src="/img/souxion-logo.webp" width="1002" height="129" loading="lazy" />
+  <img class="watermark" aria-hidden="true" alt="" src="/img/souxion-logo.webp" width="1002" height="129" loading="lazy" data-drift />
   <img class="corner hide-sm" aria-hidden="true" alt="" src="/img/souxion-icono.webp" width="200" height="164" loading="lazy" />
 
   <div class="wrap inner">
     <div class="text" data-reveal>
       <p class="label kicker">{t.kicker}</p>
-      <h2 class="title display">
-        {t.title}
-        <img src="/img/souxion-logo.webp" alt="SOUXION" width="1002" height="129" loading="lazy" />
+      <h2 class="title display" data-words="title" aria-label={`${t.title} SOUXION`}>
+        {words(t.title).map((word) => <><span class="w" aria-hidden="true">{word}</span>{' '}</>)}
+        <!-- Logo en dos capas: apagado abajo y naranja arriba, que se descubre al bajar (--fill) -->
+        <span class="logo-paint" data-fill aria-hidden="true">
+          <img class="logo-base" src="/img/souxion-logo.webp" alt="" width="1002" height="129" loading="lazy" />
+          <img class="logo-color" src="/img/souxion-logo.webp" alt="" width="1002" height="129" loading="lazy" />
+        </span>
       </h2>
+      <p class="short">{t.short}</p>
       <p class="lead">{s.description}</p>
 
-      <div class="tabs" data-tabs>
+      <!-- Las pestañas avanzan solas mientras se ven; al tocar una, se detienen (sections.ts) -->
+      <div class="tabs" data-tabs data-autoplay="6000">
         <div role="tablist" aria-label={t.tabsLabel} class="tablist">
           {
             t.tabs.map((label, i) => (
@@ -48,6 +55,7 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
             ))
           }
         </div>
+        <div class="tab-progress" aria-hidden="true"><span></span></div>
         <div class="panels">
           <div role="tabpanel" id="soux-panel-0" aria-labelledby="soux-tab-0" class="panel fade">
             <p class="panel-copy">{t.studioPre} <span class="orange">{t.studioHighlight}</span> {t.studioPost}</p>
@@ -87,19 +95,20 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
       </div>
     </div>
 
-    <div class="collage hide-sm" data-reveal>
-      <div class="collage-photo">
+    <!-- Cada pieza tiene su velocidad (--depth) y la foto se endereza al bajar (scroll-fx.ts) -->
+    <div class="collage" data-reveal data-collage>
+      <div class="collage-photo" style="--depth:40px">
         <img src={s.photo.url} alt={s.photo.alt} width={s.photo.width} height={s.photo.height} loading="lazy" />
       </div>
-      <div class="iso float">
+      <div class="iso float" style="--depth:-110px">
         <img src="/img/souxion-isotipo.webp" alt={t.isotipo} width="400" height="327" loading="lazy" />
       </div>
-      <a href={s.url} target="_blank" rel="noopener" class="site-card float">
+      <a href={s.url} target="_blank" rel="noopener" class="site-card float" style="--depth:80px">
         <span class="www mono">www</span>
         <span><span class="site-name">{domain}</span><span class="mono site-label">{t.siteLabel} ↗</span></span>
       </a>
-      <a href={s.instagramUrl} target="_blank" rel="noopener" class="ig float"><Icon name="instagram" /> {s.instagram}</a>
-      <span class="remote mono">{t.remote}</span>
+      <a href={s.instagramUrl} target="_blank" rel="noopener" class="ig float" style="--depth:-70px"><Icon name="instagram" /> {s.instagram}</a>
+      <span class="remote mono" style="--depth:55px">{t.remote}</span>
     </div>
   </div>
 </section>
@@ -137,6 +146,9 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     max-width: none;
     height: auto;
     opacity: 0.06;
+    /* Se corre de costado al bajar (--drift, scroll-fx.ts) */
+    transform: translate3d(var(--drift, 0px), 0, 0);
+    will-change: transform;
   }
   .corner {
     position: absolute;
@@ -167,12 +179,29 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     text-transform: uppercase;
     color: var(--orange);
   }
-  .title img {
+  /* Logo que se pinta: la capa naranja se recorta según --fill (scroll-fx.ts) */
+  .logo-paint {
+    position: relative;
     display: block;
     width: 100%;
     max-width: 560px;
-    height: auto;
     margin-top: 22px;
+  }
+  .logo-paint img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .logo-color {
+    position: absolute;
+    inset: 0;
+  }
+  :global(.js) .logo-base {
+    filter: grayscale(1) brightness(1.6);
+    opacity: 0.16;
+  }
+  :global(.js) .logo-color {
+    clip-path: inset(0 calc(100% - var(--fill, 0%)) 0 0);
   }
   .lead {
     margin-top: 28px;
@@ -186,6 +215,33 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     color: var(--orange);
   }
 
+  /* Barrita que muestra cuánto falta para la próxima pestaña (sections.ts) */
+  .tab-progress {
+    margin-top: 12px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(254, 64, 4, 0.15);
+    overflow: hidden;
+  }
+  .tab-progress span {
+    display: block;
+    height: 100%;
+    background: var(--orange);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .tab-progress:global(.is-running) span {
+    animation: tab-progress var(--autoplay, 6000ms) linear forwards;
+  }
+  .tab-progress:global(.is-stopped) {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  @keyframes tab-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
   .tablist {
     display: flex;
     flex-wrap: wrap;
@@ -330,7 +386,13 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     overflow: hidden;
     border: 1px solid rgba(254, 64, 4, 0.35);
     box-shadow: 0 40px 120px rgba(254, 64, 4, 0.25);
-    rotate: -3deg;
+    /* Arranca torcida y se endereza al bajar (--cs de 0 a 1) */
+    rotate: calc(-6deg * (1 - var(--cs, 0.5)));
+  }
+  /* Profundidad: cada pieza se desplaza según su --depth y el avance --cp (-1 a 1) */
+  .collage > * {
+    transform: translate3d(0, calc(var(--cp, 0) * var(--depth, 0px)), 0);
+    will-change: transform;
   }
   .collage-photo img {
     width: 100%;
@@ -421,16 +483,138 @@ const domain = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     font-size: 12px;
     rotate: -4deg;
   }
+  .short {
+    display: none;
+  }
+  /* En celular el collage va primero y el texto se acorta */
   @media (max-width: 760px) {
     .souxion {
-      margin-top: 96px;
-      padding: 88px var(--gutter);
+      margin-top: 80px;
+      padding: 72px var(--gutter);
+    }
+    .inner {
+      gap: 8px;
+    }
+    .collage {
+      order: -1;
+      flex: 1 1 100%;
+      height: 440px;
+    }
+    .collage > * {
+      transform: none;
+    }
+    .collage-photo {
+      left: 50%;
+      top: 44px;
+      width: 220px;
+      height: 290px;
+      margin-left: -110px;
+      border-radius: 24px;
+    }
+    .iso {
+      right: 0;
+      top: 6px;
+      width: 76px;
+      height: 76px;
+      border-radius: 18px;
+      z-index: 3;
+    }
+    .iso img {
+      width: 44px;
+    }
+    .site-card {
+      left: 0;
+      bottom: 64px;
+      padding: 10px 12px;
+      gap: 10px;
+      border-radius: 14px;
+      z-index: 3;
+    }
+    .www {
+      width: 28px;
+      height: 28px;
+      font-size: 9px;
+    }
+    .site-name {
+      font-size: 12px;
+    }
+    .ig {
+      right: 0;
+      bottom: auto;
+      top: 220px;
+      padding: 9px 13px;
+      font-size: 12px;
+      z-index: 3;
+    }
+    .remote {
+      left: 50%;
+      bottom: 14px;
+      margin-left: -82px;
+      padding: 8px 12px;
+      font-size: 11px;
+      z-index: 3;
+    }
+    .watermark {
+      left: 0;
+      width: 100%;
+      bottom: 28px;
+      opacity: 0.1;
     }
     .lead {
-      font-size: 17px;
+      display: none;
+    }
+    .short {
+      display: block;
+      margin-top: 20px;
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 300;
+      color: #d9d2cc;
+    }
+    .tablist {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 6px;
+      margin: 20px calc(-1 * var(--gutter)) 0;
+      padding: 0 var(--gutter) 4px;
+      scrollbar-width: none;
+    }
+    .tablist::-webkit-scrollbar {
+      display: none;
+    }
+    .tablist .tab {
+      flex: none;
+      font-size: 12px;
+      padding: 9px 13px;
     }
     .panels {
-      padding: 20px;
+      margin-top: 14px;
+      /* Alto parejo: las pestañas avanzan solas y lo de abajo no debe saltar */
+      min-height: 340px;
+      padding: 16px;
+    }
+    .panel-copy {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .checks {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 10px;
+      margin-top: 12px;
+      font-size: 11.5px;
+    }
+    .actions {
+      margin-top: 20px;
+      gap: 8px;
+    }
+    .actions .btn {
+      padding: 13px 16px;
+      font-size: 13.5px;
+      flex: 1 1 0;
+      white-space: nowrap;
+    }
+    .actions .btn:first-child {
+      flex: 1 1 100%;
     }
   }
 </style>

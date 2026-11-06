@@ -14,6 +14,9 @@ const { lang, settings, services } = Astro.props;
 const t = ui(lang).services;
 const body = `${t.bodyPre} ${t.bodyEmpty}`;
 const mailto = `mailto:${settings.email}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(body)}`;
+const pad = (n: number) => String(n).padStart(2, '0');
+// Cada tarjeta tiene su luz; si desde Sanity se suman servicios, los colores se repiten
+const COLORS = ['#8b6cff', '#4f7bff', '#ff8a5b', '#f5c76b', '#5ee6a8'];
 ---
 
 <section
@@ -37,45 +40,56 @@ const mailto = `mailto:${settings.email}?subject=${encodeURIComponent(t.subject)
       <p class="intro">{t.copy}</p>
     </div>
 
-    <div class="layout">
-      <ul class="list">
-        {
-          services.map((s) => (
-            <li class="item" data-reveal>
-              <div class="svc">
-                <h3 class="svc-title display">{s.title}</h3>
-                <p class="svc-desc">{s.description}</p>
-              </div>
-              <button type="button" class="add" aria-pressed="false" data-service={s.title} aria-label={s.title}>
-                <span class="mono">{t.add}</span>
-              </button>
-            </li>
-          ))
-        }
-      </ul>
+    <ul class="sgrid">
+      {
+        services.map((s, i) => (
+          <li data-reveal style={`--reveal-index:${Math.min(i, 6)}`}>
+            <button
+              type="button"
+              class="scard"
+              aria-pressed="false"
+              data-service={s.title}
+              data-color={COLORS[i % COLORS.length]}
+              style={`--c:${COLORS[i % COLORS.length]}`}
+            >
+              <span class="slight" aria-hidden="true"></span>
+              <span class="scard-top">
+                <span class="mono scard-n">{pad(i + 1)}</span>
+                <span class="sdot" aria-hidden="true"></span>
+              </span>
+              <span class="sctitle">{s.title}</span>
+              <span class="scdesc">{s.description}</span>
+              <span class="sadd mono" data-add-label>{t.add}</span>
+            </button>
+          </li>
+        ))
+      }
+    </ul>
 
-      <aside class="ticket" aria-label={t.ticketLabel}>
-        <div class="person">
-          <img src="/img/fiamma-avatar.webp" alt="" width="52" height="52" loading="lazy" />
-          <div>
-            <p class="person-name">{settings.name}</p>
-            <p class="mono available">{t.available}</p>
+    <div class="request-wrap" data-request>
+      <div class="halo halo-l" aria-hidden="true"></div>
+      <div class="halo halo-r" aria-hidden="true"></div>
+      <div class="request">
+        <img src="/img/fiamma-avatar.webp" alt="" width="40" height="40" loading="lazy" />
+        <div class="request-body">
+          <p class="mono request-label">{t.ticketLabel} <span>{t.available}</span></p>
+          <div class="chosen" aria-live="polite">
+            <p class="empty" data-empty>{t.empty}</p>
+            <ul class="picked" data-picked></ul>
           </div>
         </div>
-        <p class="mono ticket-label">{t.ticketLabel}</p>
-        <div class="selected" aria-live="polite">
-          <p class="empty" data-empty>{t.empty}</p>
-          <ul class="picked" data-picked></ul>
+        <div class="request-actions">
+          <a href={whatsappUrl(settings.whatsapp, body)} target="_blank" rel="noopener" class="sbtn sbtn-wa" data-wa>{t.whatsapp}</a>
+          <a href={mailto} class="sbtn sbtn-mail" data-mail>{t.email} <Icon name="arrow-up-right" size={14} /></a>
         </div>
-        <div class="perforation" aria-hidden="true"><span></span><span></span></div>
-        <a href={mailto} class="cta cta-mail" data-mail>{t.email} <Icon name="arrow-up-right" size={14} /></a>
-        <a href={whatsappUrl(settings.whatsapp, body)} target="_blank" rel="noopener" class="cta cta-wa" data-wa>{t.whatsapp}</a>
-        <a href={settings.souxion.url} target="_blank" rel="noopener" class="cta cta-soux">
-          <img src="/img/souxion-icono.webp" alt="" width="16" height="13" />{t.souxion} ↗
-        </a>
-        <p class="mono email">{settings.email}</p>
-      </aside>
+      </div>
     </div>
+
+    <p class="soux-note">
+      <a href={settings.souxion.url} target="_blank" rel="noopener" class="mono">
+        <img src="/img/souxion-icono.webp" alt="" width="14" height="11" />{t.souxion} ↗
+      </a>
+    </p>
   </div>
 </section>
 
@@ -87,10 +101,9 @@ const mailto = `mailto:${settings.email}?subject=${encodeURIComponent(t.subject)
   .services {
     position: relative;
     margin-top: 140px;
-    padding: 120px var(--gutter);
-    background: linear-gradient(180deg, var(--bg) 0%, #1a0f45 55%, #3a1f9e 100%);
-    /* clip (no hidden) para no romper el position: sticky del ticket */
-    overflow-x: clip;
+    padding: 110px var(--gutter) 120px;
+    background: linear-gradient(180deg, var(--bg) 0%, #0f0a26 55%, var(--bg) 100%);
+    overflow: hidden;
   }
   .head {
     display: flex;
@@ -98,13 +111,13 @@ const mailto = `mailto:${settings.email}?subject=${encodeURIComponent(t.subject)
     align-items: flex-end;
     flex-wrap: wrap;
     gap: 24px;
-    margin-bottom: 40px;
+    margin-bottom: 44px;
   }
   .kicker {
     color: var(--lilac);
   }
   .title {
-    font-size: clamp(24px, 7vw, 64px);
+    font-size: clamp(24px, 7vw, 56px);
     line-height: 0.95;
     letter-spacing: -0.035em;
     text-transform: uppercase;
@@ -116,242 +129,352 @@ const mailto = `mailto:${settings.email}?subject=${encodeURIComponent(t.subject)
     font-size: 16px;
     line-height: 1.6;
   }
-  .layout {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 40px;
-    align-items: flex-start;
-  }
-  .list {
-    flex: 2 1 560px;
-    min-width: 0;
+
+  /* ---------- Tarjetas ---------- */
+  .sgrid {
     list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
   }
-  .item {
-    border-top: 1px solid rgba(243, 240, 255, 0.2);
-    padding: 26px 0;
+  .sgrid li {
     display: flex;
-    align-items: center;
-    gap: 24px;
   }
-  .svc {
-    flex: 1 1 auto;
-    min-width: 0;
-    transition: padding 0.3s ease;
-  }
-  .item:hover .svc {
-    padding-left: 14px;
-  }
-  .svc-title {
-    /* "Corporativos" es la palabra más larga: este tope evita que choque con el botón */
-    font-size: clamp(26px, 3.9vw, 56px);
-    line-height: 0.95;
-    letter-spacing: -0.035em;
-    text-transform: uppercase;
-    color: rgba(243, 240, 255, 0.55);
-    transition: color 0.3s ease;
-  }
-  .item.is-on .svc-title {
-    color: #fff;
-  }
-  .svc-desc {
-    margin-top: 10px;
-    font-size: 15px;
-    line-height: 1.6;
-    color: #c9c1e6;
-    max-width: 520px;
-  }
-  .add {
+  .scard {
     all: unset;
     cursor: pointer;
-    flex: none;
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
+    box-sizing: border-box;
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--text);
-    color: var(--bg);
-    font-size: 11px;
-    text-transform: uppercase;
-    text-align: center;
+    flex-direction: column;
+    width: 100%;
+    min-height: 340px;
+    padding: 22px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: rgba(14, 10, 26, 0.75);
+    border: 1px solid rgba(196, 181, 255, 0.14);
     transition:
-      background 0.3s ease,
-      transform 0.2s ease;
+      transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.5s ease,
+      box-shadow 0.5s ease;
   }
-  .add:hover {
-    transform: scale(1.05);
-  }
-  .add:active {
-    transform: scale(0.95);
-  }
-  .add[aria-pressed='true'] {
-    background: var(--green);
-  }
-  .add:focus-visible {
-    outline: 2px solid #fff;
+  .scard:focus-visible {
+    outline: 2px solid var(--lilac);
     outline-offset: 3px;
   }
-
-  .ticket {
-    flex: 1 1 340px;
-    min-width: 0;
-    position: sticky;
-    top: 24px;
-    border-radius: 26px;
-    background: rgba(8, 6, 15, 0.85);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--line-strong);
-    padding: 28px;
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45);
+  .scard:active {
+    transform: scale(0.98);
   }
-  .person {
+  .slight {
+    position: absolute;
+    left: -20%;
+    right: -20%;
+    bottom: -55%;
+    height: 90%;
+    border-radius: 50%;
+    filter: blur(36px);
+    background: radial-gradient(ellipse at center, var(--c), transparent 65%);
+    opacity: 0;
+    transform: translateY(30%);
+    transition:
+      opacity 0.6s ease,
+      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+  }
+  .scard-top {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .scard-n {
+    font-size: 12px;
+    color: var(--muted-2);
+  }
+  .sdot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(196, 181, 255, 0.25);
+    transition:
+      background 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+  .sctitle {
+    position: relative;
+    margin-top: auto;
+    padding-top: 40px;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .scdesc {
+    position: relative;
+    margin-top: 10px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #b9b1d6;
+  }
+  .sadd {
+    position: relative;
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--c);
+  }
+  @media (hover: hover) {
+    .scard:hover {
+      transform: translateY(-8px);
+      border-color: var(--c);
+    }
+    .scard:hover .slight {
+      opacity: 0.55;
+      transform: none;
+    }
+  }
+  .scard[aria-pressed='true'] {
+    border-color: var(--c);
+    box-shadow:
+      0 0 0 1px var(--c),
+      0 30px 80px -20px var(--c);
+  }
+  .scard[aria-pressed='true'] .slight {
+    opacity: 0.7;
+    transform: none;
+  }
+  .scard[aria-pressed='true'] .sdot {
+    background: var(--c);
+    box-shadow: 0 0 14px var(--c);
+  }
+  .scard[aria-pressed='true'] .sadd {
+    color: #fff;
+  }
+
+  /* ---------- Barra "Tu consulta" ---------- */
+  .request-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-top: 56px;
+    transition:
+      --svc-l 0.7s ease,
+      --svc-r 0.7s ease;
+  }
+  .halo {
+    position: absolute;
+    top: 50%;
+    width: 420px;
+    height: 240px;
+    margin-top: -120px;
+    border-radius: 50%;
+    filter: blur(32px);
+    pointer-events: none;
+    animation: breathe 6s ease-in-out infinite;
+  }
+  .halo-l {
+    left: calc(50% - 560px);
+    background: radial-gradient(ellipse at 70% 50%, color-mix(in srgb, var(--svc-l) 45%, transparent), transparent 62%);
+  }
+  .halo-r {
+    right: calc(50% - 560px);
+    animation-delay: -3s;
+    background: radial-gradient(ellipse at 30% 50%, color-mix(in srgb, var(--svc-r) 45%, transparent), transparent 62%);
+  }
+  .request {
+    position: relative;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 14px;
+    width: 100%;
+    max-width: 900px;
+    padding: 14px 14px 14px 18px;
+    border-radius: 22px;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#0c0a16, #0c0a16) padding-box,
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--svc-l) 90%, transparent),
+          rgba(196, 181, 255, 0.12) 40%,
+          rgba(196, 181, 255, 0.12) 60%,
+          color-mix(in srgb, var(--svc-r) 90%, transparent)
+        )
+        border-box;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
   }
-  .person img {
-    width: 52px;
-    height: 52px;
+  .request > img {
+    flex: none;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
   }
-  .person-name {
-    font-size: 17px;
-    font-weight: 500;
+  .request-body {
+    flex: 1 1 260px;
+    min-width: 0;
   }
-  .available {
-    font-size: 12px;
-    color: var(--green);
-  }
-  .ticket-label {
-    margin: 24px 0 10px;
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
+  .request-label {
+    font-size: 11px;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
   }
-  .selected {
-    min-height: 86px;
+  .request-label span {
+    margin-left: 6px;
+    color: var(--green);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .chosen {
+    margin-top: 8px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
   }
   .empty {
     font-size: 14px;
     color: var(--muted-2);
-    line-height: 1.5;
+  }
+  .empty[hidden] {
+    display: none;
   }
   .picked {
     list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .picked :global(li) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--text);
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    animation: fade-up 0.3s ease both;
+  }
+  .picked :global(li)::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--c);
+  }
+  .request-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
-  .picked :global(li) {
+  .sbtn {
     display: inline-flex;
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--accent);
-    background: rgba(124, 92, 255, 0.2);
-    font-family: var(--mono);
-    font-size: 13px;
-    color: #fff;
-    animation: fade-up 0.4s ease both;
-  }
-  .perforation {
-    margin: 22px -28px;
-    border-top: 1px dashed rgba(196, 181, 255, 0.3);
-    position: relative;
-  }
-  .perforation span {
-    position: absolute;
-    top: -10px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #1e1250;
-  }
-  .perforation span:first-child {
-    left: -10px;
-  }
-  .perforation span:last-child {
-    right: -10px;
-  }
-  .cta {
-    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 15px;
-    border-radius: 14px;
-    font-size: 15px;
-    text-align: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    white-space: nowrap;
   }
-  .cta + .cta {
-    margin-top: 10px;
-  }
-  .cta-mail {
-    background: var(--accent);
-    color: #fff;
-    font-weight: 500;
-  }
-  .cta-mail:hover {
-    background: #8d71ff;
-    color: #fff;
-  }
-  .cta-wa {
+  .sbtn-wa {
     border: 1px solid rgba(196, 181, 255, 0.3);
     color: var(--text);
   }
-  .cta-wa:hover {
+  .sbtn-wa:hover {
     border-color: var(--lilac);
   }
-  .cta-soux {
-    background: rgba(255, 80, 0, 0.12);
-    border: 1px solid rgba(255, 80, 0, 0.4);
-    color: #ffd9cc;
-    font-size: 14px;
-  }
-  .cta-soux:hover {
+  .sbtn-mail {
+    background: linear-gradient(135deg, #e0623a, var(--accent));
     color: #fff;
-    border-color: var(--orange);
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(124, 92, 255, 0.35);
   }
-  .cta-soux img {
-    width: 16px;
-    height: auto;
+  .sbtn-mail:hover {
+    color: #fff;
+    filter: brightness(1.1);
   }
-  .email {
-    margin-top: 16px;
-    font-size: 11px;
-    color: var(--muted-2);
+  .soux-note {
+    position: relative;
+    margin-top: 18px;
     text-align: center;
   }
+  .soux-note a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--peach);
+  }
+  .soux-note img {
+    width: 14px;
+    height: auto;
+  }
+
   @media (max-width: 760px) {
     .services {
-      margin-top: 96px;
-      padding: 88px var(--gutter);
+      margin-top: 80px;
+      padding: 72px var(--gutter);
     }
-    .item {
-      gap: 14px;
+    /* En celular las tarjetas se deslizan de costado */
+    .sgrid {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-left: var(--gutter);
+      gap: 12px;
+      margin: 0 calc(-1 * var(--gutter));
+      padding: 6px var(--gutter) 14px;
+      scrollbar-width: none;
     }
-    .svc-title {
-      font-size: clamp(18px, 5.2vw, 32px);
+    .sgrid::-webkit-scrollbar {
+      display: none;
     }
-    .add {
-      width: 64px;
-      height: 64px;
-      font-size: 9px;
+    .sgrid li {
+      flex: 0 0 78%;
+      scroll-snap-align: start;
     }
-    .ticket {
-      position: static;
-      padding: 22px;
+    /* Las tarjetas fuera de pantalla no deben esperar al scroll para aparecer al deslizar */
+    :global(.js) .sgrid li[data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
     }
-    .perforation {
-      margin: 22px -22px;
+    .scard {
+      min-height: 250px;
+      padding: 18px;
+    }
+    /* El carrusel recorta lo que sobresale: acá la tarjeta elegida lleva solo el borde */
+    .scard[aria-pressed='true'] {
+      box-shadow: 0 0 0 1px var(--c);
+    }
+    .request-body {
+      flex-basis: 200px;
+    }
+    .sctitle {
+      font-size: 24px;
+    }
+    .request-wrap {
+      margin-top: 28px;
+    }
+    .request {
+      padding: 14px;
+    }
+    .sbtn {
+      flex: 1 1 auto;
+    }
+    .soux-note a {
+      line-height: 1.5;
     }
   }
 </style>

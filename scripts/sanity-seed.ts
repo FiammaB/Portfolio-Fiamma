@@ -84,11 +84,11 @@ docs.push({
   features: s.features.map((f, i) => ({
     _key: key(),
     _type: 'feature',
+    label: loc(f.label, t.features[i].label),
     title: loc(f.title, t.features[i].title),
     stack: f.stack,
     souxion: Boolean(f.souxion),
   })),
-  marquee: s.marquee,
   aboutPhoto: image(s.aboutPhoto),
   aboutLead: text(s.aboutLead, t.aboutLead),
   aboutCopy: text(s.aboutCopy, t.aboutCopy),

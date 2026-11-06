@@ -34,9 +34,24 @@ function image(raw: RawImage, fallbackAlt: string, width = 1600): Image | null {
 const L = (field: string) => `"${field}": coalesce(${field}[$lang], ${field}.es)`;
 const IMAGE = `{ ..., "dimensions": asset->metadata.dimensions }`;
 
+// Si Sanity no responde (sin internet, DNS caído: ENOTFOUND, timeout…) se reintenta
+// una vez y, si sigue fallando, se devuelve null para usar el contenido semilla.
+// Así un corte momentáneo no rompe la página ni el build.
 async function fetch<T>(query: string, lang: Lang): Promise<T | null> {
   if (!client) return null;
-  return client.fetch<T>(query, { lang });
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return await client.fetch<T>(query, { lang });
+    } catch (error) {
+      if (attempt === 2) {
+        const reason = error instanceof Error ? error.message : String(error);
+        console.warn(`[sanity] No se pudo leer el contenido (${reason}). Se usa el contenido de src/lib/seed.ts.`);
+        return null;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+  return null;
 }
 
 // Si el CMS todavía no tiene documentos de un tipo, se usa el contenido semilla
@@ -84,26 +99,23 @@ const SHOT_TONES: Record<string, Pick<Shot, 'glow' | 'ring'>> = {
   claro: { glow: 'rgba(220,214,255,.20)', ring: '#F3F0FF' },
 };
 
-const settingsCache = new Map<Lang, Promise<Settings>>();
-
 // Los campos vacíos en Sanity conservan el valor semilla
 export function getSettings(lang: Lang): Promise<Settings> {
-  if (!settingsCache.has(lang)) settingsCache.set(lang, loadSettings(lang));
-  return settingsCache.get(lang)!;
+  return loadSettings(lang);
 }
 
 async function loadSettings(lang: Lang): Promise<Settings> {
   const s = seed(lang).settings;
   const raw = await fetch<any>(
     `*[_type == "settings"][0] {
-      name, marquee, email, whatsapp, linkedin, github,
+      name, email, whatsapp, linkedin, github,
       ${L('role')}, ${L('availability')}, ${L('heroCopy')}, ${L('typedWords')},
       ${L('aboutLead')}, ${L('aboutCopy')}, ${L('traits')}, ${L('whatsappMessage')},
       ${L('souxionDescription')}, souxionUrl, souxionInstagram, souxionWhatsapp,
       "cvEs": cvEs.asset->url, "cvEn": cvEn.asset->url,
       shots[] { tone, "image": image ${IMAGE} },
       aboutPhoto ${IMAGE}, souxionPhoto ${IMAGE},
-      features[] { ${L('title')}, stack, souxion },
+      features[] { ${L('label')}, ${L('title')}, stack, souxion },
       stats[] { value, ${L('label')}, tone },
       stack[] { ${L('label')}, items },
       education[] { year, ${L('title')}, institution },
@@ -131,8 +143,11 @@ async function loadSettings(lang: Lang): Promise<Settings> {
     heroCopy: filled(raw.heroCopy, s.heroCopy),
     typedWords: list(raw.typedWords, s.typedWords),
     shots: orSeed(shots, s.shots),
-    features: list(raw.features, s.features),
-    marquee: list(raw.marquee, s.marquee),
+    // Lo cargado antes en Sanity no tiene nombre corto: usa el de la semilla o el título
+    features: list(raw.features, s.features).map((f: any, i: number) => ({
+      ...f,
+      label: f.label ?? s.features[i]?.label ?? f.title,
+    })),
     aboutLead: filled(raw.aboutLead, s.aboutLead),
     aboutCopy: filled(raw.aboutCopy, s.aboutCopy),
     traits: list(raw.traits, s.traits),

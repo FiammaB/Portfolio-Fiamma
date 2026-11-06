@@ -18,7 +18,7 @@ const year = new Date().getFullYear();
   <div class="arc" aria-hidden="true"></div>
   <div class="inner" data-reveal>
     <p class="label">{t.contact.kicker}</p>
-    <h2 class="title display">{t.contact.title} <span class="hl">{t.contact.highlight}</span></h2>
+    <h2 class="title display sans">{t.contact.title} <span class="hl">{t.contact.highlight}</span></h2>
     <p class="copy">{t.contact.copy}</p>
     <a href={`mailto:${settings.email}`} class="btn btn-accent mail"><Icon name="mail" size={18} /> {settings.email}</a>
     <div class="links">
@@ -133,18 +133,45 @@ const year = new Date().getFullYear();
   }
   @media (max-width: 760px) {
     .contact {
-      margin-top: 96px;
-      padding-top: 110px;
+      margin-top: 40px;
+      padding-top: 90px;
+    }
+    .title {
+      font-size: 24px;
+      line-height: 1.05;
     }
     .copy {
-      font-size: 16px;
+      display: none;
     }
-    .mail {
-      font-size: 14px;
-      padding: 16px 22px;
+    .inner .mail {
+      margin-top: 26px;
+      padding: 0 0 6px;
+      gap: 8px;
+      background: none;
+      box-shadow: none;
+      border: 0;
+      border-bottom: 1px solid rgba(196, 181, 255, 0.45);
+      border-radius: 0;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+    }
+    .links {
+      gap: 4px 18px;
+      margin-top: 22px;
+    }
+    .links .chip {
+      padding: 4px 0;
+      border: 0;
+      background: none;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .links .chip.soux {
+      color: var(--peach);
     }
     .footer {
-      margin-top: 96px;
+      margin-top: 80px;
     }
   }
 </style>

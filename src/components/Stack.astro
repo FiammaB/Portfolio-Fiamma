@@ -18,9 +18,29 @@ const initial = Math.min(1, settings.stack.length - 1);
   <div class="wrap">
     <div class="head" data-reveal>
       <p class="label">{t.kicker}</p>
-      <h2 class="h2 display">{t.title} <span class="hl">{t.highlight}</span></h2>
+      <h2 class="h2 display sans">{t.title} <span class="hl">{t.highlight}</span></h2>
       <p class="intro">{t.copy}</p>
     </div>
+
+    <!-- En celular se ven las tres categorías juntas, deslizando de costado -->
+    <ul class="stk-all">
+      {
+        settings.stack.map((c, i) => (
+          <li class="stk-card">
+            <div class="stk-head">
+              <div>
+                <p class="stk-title">{c.label}</p>
+                <p class="stk-use">{t.uses[i]}</p>
+              </div>
+              <span class="mono stk-count">{pad(c.items.length)}</span>
+            </div>
+            <ul class="stk-items">
+              {c.items.map((item) => <li>{item}</li>)}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
 
     <div class="board" data-tabs data-stack>
       <div role="tablist" aria-label={t.catsLabel} aria-orientation="vertical" class="cats">
@@ -206,16 +226,80 @@ const initial = Math.min(1, settings.stack.length - 1);
     padding: 12px 18px;
     font-size: 14px;
   }
+  .stk-all {
+    display: none;
+  }
   @media (max-width: 760px) {
-    .ring {
-      width: 220px;
-      height: 220px;
+    .head {
+      max-width: none;
+      margin: 0 0 18px;
+      text-align: left;
     }
-    .ring-count {
-      font-size: 64px;
+    .intro,
+    .board {
+      display: none;
     }
-    .items {
-      flex-basis: 100%;
+    .stk-all {
+      display: flex;
+      gap: 12px;
+      list-style: none;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-left: var(--gutter);
+      margin: 0 calc(-1 * var(--gutter));
+      padding: 4px var(--gutter) 12px;
+      scrollbar-width: none;
+    }
+    .stk-all::-webkit-scrollbar {
+      display: none;
+    }
+    .stk-card {
+      flex: 0 0 84%;
+      scroll-snap-align: start;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(196, 181, 255, 0.12);
+    }
+    .stk-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .stk-title {
+      font-size: 17px;
+      font-weight: 500;
+    }
+    .stk-use {
+      margin-top: 4px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .stk-count {
+      flex: none;
+      padding-top: 4px;
+      font-size: 12px;
+      line-height: 1;
+      color: var(--lilac);
+    }
+    .stk-items {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .stk-items li {
+      padding: 9px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-soft);
+      background: rgba(255, 255, 255, 0.04);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 </style>
