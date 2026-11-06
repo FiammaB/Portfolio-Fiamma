@@ -210,6 +210,51 @@ export function seed(lang: Lang) {
       cta: t('Ver sitio', 'Visit site'),
       url: 'https://kuvarquitectura.com.ar/',
     },
+    {
+      title: t('Tienda de Instrumentos Musicales', 'Musical Instruments Store'),
+      kind: 'UTN',
+      tone: 'muted',
+      categories: ['academico'],
+      description: t(
+        'E-commerce full stack con gestión de instrumentos, carritos, pedidos, autenticación por roles, estadísticas y exportación de datos. Proyecto unipersonal con backend en Spring Boot y frontend en React + TypeScript.',
+        'Full stack e-commerce with instrument management, carts, orders, role-based authentication, statistics and data export. A solo project with a Spring Boot backend and a React + TypeScript frontend.',
+      ),
+      stack: 'Java · React + Vite · MySQL',
+      image: null,
+      placeholder: 'code',
+      cta: t('Ver GitHub', 'View on GitHub'),
+      url: 'https://github.com/FiammaB/Tp5LabInstrumentosSpringBoot',
+    },
+    {
+      title: t('Empresas y Noticias', 'Companies and News'),
+      kind: 'UTN',
+      tone: 'muted',
+      categories: ['academico'],
+      description: t(
+        'Aplicación web para gestionar empresas y noticias con operaciones CRUD y búsqueda. Proyecto académico enfocado en backend con PHP, persistencia en MySQL e integración con frontend en HTML, CSS y JavaScript.',
+        'Web app to manage companies and news with CRUD operations and search. An academic project focused on a PHP backend, MySQL persistence and an HTML, CSS and JavaScript frontend.',
+      ),
+      stack: 'PHP · JavaScript · MySQL',
+      image: null,
+      placeholder: 'code',
+      cta: t('Ver GitHub', 'View on GitHub'),
+      url: 'https://github.com/FiammaB/TpLabEmpresas',
+    },
+    {
+      title: t('Gestión de Pedidos de Venta', 'Sales Order Management'),
+      kind: 'UTN',
+      tone: 'muted',
+      categories: ['academico'],
+      description: t(
+        'Sistema web para administrar pedidos, clientes y productos, con búsquedas avanzadas y arquitectura full stack. Desarrollado con Node.js, Express, TypeScript y MySQL.',
+        'Web system to manage orders, customers and products, with advanced search and a full stack architecture. Built with Node.js, Express, TypeScript and MySQL.',
+      ),
+      stack: 'Node.js · TypeScript · MySQL',
+      image: null,
+      placeholder: 'code',
+      cta: t('Ver GitHub', 'View on GitHub'),
+      url: 'https://github.com/FiammaB/Projecto-Final-Negocio-Lab-3',
+    },
   ];
 
   const services: Service[] = [
